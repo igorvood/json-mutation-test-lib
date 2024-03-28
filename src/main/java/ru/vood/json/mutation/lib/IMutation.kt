@@ -33,11 +33,11 @@ data class Delete(
             val any = when (jsonElement) {
                 is JsonObject -> {
                     if (path.size == 1) {
-                        val jsonElement1 = jsonElement[path[0]] ?: error("json element ${path[0]} not found for delete")
+                        val jsonElement1 = jsonElement[path[0]] ?: error("json element ${path[0]} not found for delete 2")
                         JsonObject(mapOf(path[0] to JsonNull))
                     } else {
                         val childrenJsonElement =
-                            jsonElement[path[0]] ?: error("json element ${path[0]} not found for delete")
+                            jsonElement[path[0]] ?: error("json element ${path[0]} not found for delete 1")
                         val asdsad = asdsad(childrenJsonElement, path.drop(1))
                         JsonObject(jsonElement.plus(path[0] to asdsad))
                     }
