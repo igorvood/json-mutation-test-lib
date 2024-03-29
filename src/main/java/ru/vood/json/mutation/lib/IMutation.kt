@@ -6,21 +6,7 @@ import kotlinx.serialization.json.*
 sealed interface IMutation {
     val jsonPath: JsonPath
     val value: JsonElement
-    fun mutate(mutatedJson: JsonElement): JsonElement
-    companion object {
-        fun String.delete() = Delete(JsonPath(this))
-
-    }
-
-}
-
-data class Delete(
-    override val jsonPath: JsonPath,
-) : IMutation {
-
-    override val value: JsonElement
-        get() = JsonNull
-
+    fun mutate(mutatedJson: JsonElement): JsonElement = mutateRecurcive(mutatedJson, jsonPath.value.split("/"))
     fun mutateRecurcive(jsonElement: JsonElement, path: List<String>): JsonElement {
         val (name, arrayIndex, isLast) = if (path.isNotEmpty() && path.first().contains("[")) {
             val node = path.first()
@@ -35,20 +21,27 @@ data class Delete(
 
         return when {
             isLast && arrayIndex == null && jsonElement is JsonObject -> {
-                val jsonElement1 = jsonElement[name] ?: error("In JsonObject not found field '${name}' for delete")
+                val addElement = when (this) {
+                    is Delete -> {
+                        jsonElement[name]
+                            ?: error("In JsonObject not found field '${name}' for ${Delete::class.simpleName}")
+                        emptyMap()
+                    }
+                    is Mutate -> mapOf(name to value)
+                }
                 val map = jsonElement.entries.map { entry ->
                     when (entry.key == name) {
-                        true -> name to JsonNull
+                        true -> name to value
                         false -> entry.key to entry.value
                     }
-                }.toMap()
+                }.toMap().plus(addElement)
                 JsonObject(map)
             }
             !isLast && arrayIndex == null && jsonElement is JsonObject -> {
                 val childrenJsonElement =
                     jsonElement[name] ?: error("json element ${name} not found for delete 1")
-                val asdsad = mutateRecurcive(childrenJsonElement, path.drop(1))
-                JsonObject(jsonElement.plus(path[0] to asdsad))
+                val mutatedJson = mutateRecurcive(childrenJsonElement, path.drop(1))
+                JsonObject(jsonElement.plus(path[0] to mutatedJson))
             }
             isLast && arrayIndex != null && jsonElement is JsonObject -> {
                 val jsonElement1: JsonObject = jsonElement
@@ -95,20 +88,36 @@ data class Delete(
         }
     }
 
-    override fun mutate(mutatedJson: JsonElement): JsonElement {
+    companion object {
+        fun String.delete() = Delete(JsonPath(this))
 
 
-        return mutateRecurcive(mutatedJson, jsonPath.value.split("/"))
+        infix fun String.mutate1(jsonValue: Boolean?): Mutate = Mutate(JsonPath(this),JsonPrimitive(jsonValue))
+
+
+        infix fun String.mutate1(jsonValue: Number?): Mutate = Mutate(JsonPath(this),JsonPrimitive(jsonValue))
+
+        infix fun String.mutate1(jsonValue: String?): Mutate = Mutate(JsonPath(this),JsonPrimitive(jsonValue))
+
+
     }
+
 }
 
-data class Add(
+data class Delete(
+    override val jsonPath: JsonPath,
+) : IMutation {
+
+    override val value: JsonElement
+        get() = JsonNull
+
+}
+
+data class Mutate(
     override val jsonPath: JsonPath,
     override val value: JsonElement,
 ) : IMutation {
-    override fun mutate(mutatedJson: JsonElement): JsonElement {
-        TODO("Not yet implemented")
-    }
+
 }
 
 //data class Change(

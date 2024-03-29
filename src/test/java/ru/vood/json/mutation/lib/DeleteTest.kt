@@ -14,7 +14,6 @@ internal class DeleteTest {
 
     @ParameterizedTest
     @MethodSource("ru.vood.json.mutation.lib.DeleteTest#testCaseData")
-
     fun mutate(testCase: TestCase) {
         println("Etalon json")
         println(parseToJsonElement.toString())
@@ -53,7 +52,7 @@ internal class DeleteTest {
             TestCase("Удаление не существующего элемента массива", "a2/a3/a4[3]".delete(), Err("json element a4 not contains index 3")),
             TestCase("Удаление задано буквой элемента массива", "a2/a3/a4[j]".delete(), Err("For input string: \"j\"")),
             TestCase("Удаление не существующего элемента массива", "a2/a3/a4[-1]".delete(), Err("json element a4 not contains index -1")),
-            TestCase("Удаление несуществующего объекта", "a2/a33".delete(), Err("In JsonObject not found field 'a33' for delete")),
+            TestCase("Удаление несуществующего объекта", "a2/a33".delete(), Err("In JsonObject not found field 'a33' for Delete")),
             TestCase("Удаление поля в элементе массива", "a2/a3/a4[1]/f1".delete(), Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":null,"f2":"f22"}]}},"z1":15}""")),
         )
 
