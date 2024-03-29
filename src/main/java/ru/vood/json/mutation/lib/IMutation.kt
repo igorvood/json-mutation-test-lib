@@ -102,27 +102,6 @@ data class Delete(
             else -> error("name, arrayIndex, isLast")
 
         }
-
-
-//        println(name)
-//
-//        val any = when (jsonElement) {
-//            is JsonObject -> {
-//                if (path.size == 1) {
-//                    val jsonElement1 = jsonElement[name] ?: error("json element ${name} not found for delete 2")
-//                    JsonObject(mapOf(name to JsonNull))
-//                } else {
-//                    val childrenJsonElement =
-//                        jsonElement[name] ?: error("json element ${name} not found for delete 1")
-//                    val asdsad = asdsad(childrenJsonElement, path.drop(1))
-//                    JsonObject(jsonElement.plus(path[0] to asdsad))
-//                }
-//            }
-//            is JsonPrimitive, is JsonArray -> if (path.isEmpty()) jsonElement else {
-//                error("JsonPrimitive found")
-//            }
-//        }
-//        return any
     }
 
     override fun mutate(jsonElement: JsonElement): JsonElement {
