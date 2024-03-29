@@ -78,7 +78,7 @@ sealed interface IMutation {
                 }
 
             }
-
+//            !isLast && arrayIndex != null && jsonElement is JsonObject -> {}
 
             jsonElement is JsonPrimitive || jsonElement is JsonArray -> if (path.isEmpty()) jsonElement else {
                 error("JsonPrimitive found")
