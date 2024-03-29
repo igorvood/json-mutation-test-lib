@@ -3,7 +3,8 @@ package ru.vood.json.mutation.lib
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class A1(val a2: A2)
+data class A1(val a2: A2, val z1: Int)
+
 @Serializable
 data class A2(val a3: A3)
 
