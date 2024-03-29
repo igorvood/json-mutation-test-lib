@@ -5,19 +5,8 @@ import kotlinx.serialization.json.*
 
 sealed interface IMutation {
     val jsonPath: JsonPath
-    fun mutate(jsonElement: JsonElement): JsonElement
-    fun find(jsonElement: JsonElement, path: List<String>): JsonElement {
-        return when (jsonElement) {
-            is JsonObject -> {
-                val jsonElement1 = jsonElement[path[0]] ?: error("json element ${path[0]} not found ")
-                find(jsonElement1, path.drop(1))
-            }
-            is JsonPrimitive, is JsonArray -> if (path.isEmpty()) jsonElement else {
-                error("JsonPrimitive found")
-            }
-        }
-    }
-
+    val value: JsonElement
+    fun mutate(mutatedJson: JsonElement): JsonElement
     companion object {
         fun String.delete() = Delete(JsonPath(this))
 
@@ -29,6 +18,8 @@ data class Delete(
     override val jsonPath: JsonPath,
 ) : IMutation {
 
+    override val value: JsonElement
+        get() = JsonNull
 
     fun mutateRecurcive(jsonElement: JsonElement, path: List<String>): JsonElement {
         val (name, arrayIndex, isLast) = if (path.isNotEmpty() && path.first().contains("[")) {
@@ -104,28 +95,28 @@ data class Delete(
         }
     }
 
-    override fun mutate(jsonElement: JsonElement): JsonElement {
+    override fun mutate(mutatedJson: JsonElement): JsonElement {
 
 
-        return mutateRecurcive(jsonElement, jsonPath.value.split("/"))
+        return mutateRecurcive(mutatedJson, jsonPath.value.split("/"))
     }
 }
 
 data class Add(
     override val jsonPath: JsonPath,
-    val value: JsonElement,
+    override val value: JsonElement,
 ) : IMutation {
-    override fun mutate(jsonElement: JsonElement): JsonElement {
+    override fun mutate(mutatedJson: JsonElement): JsonElement {
         TODO("Not yet implemented")
     }
 }
 
-data class Change(
-    override val jsonPath: JsonPath,
-    val value: JsonElement,
-) : IMutation {
-    override fun mutate(jsonElement: JsonElement): JsonElement {
-        TODO("Not yet implemented")
-    }
-}
+//data class Change(
+//    override val jsonPath: JsonPath,
+//    val value: JsonElement,
+//) : IMutation {
+//    override fun mutate(mutatedJson: JsonElement): JsonElement {
+//        TODO("Not yet implemented")
+//    }
+//}
 
