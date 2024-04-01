@@ -10,8 +10,8 @@ sealed interface IMutation {
     fun mutateRecursive(jsonElement: JsonElement, path: List<String>): JsonElement {
         val (name, arrayIndex, isLast) = nodeProperty(path)
 
-
         return when {
+
             isLast && arrayIndex == null && jsonElement is JsonObject -> {
                 val addElement = when (this) {
                     is Delete -> {
