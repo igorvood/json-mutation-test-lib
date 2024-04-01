@@ -7,7 +7,6 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import ru.vood.json.mutation.lib.IMutation.Companion.delete
-import javax.security.auth.callback.ConfirmationCallback.OK
 
 internal class DeleteTest {
 
@@ -18,7 +17,7 @@ internal class DeleteTest {
         println("Etalon json")
         println(parseToJsonElement.toString())
 
-        when(val exp = testCase.expected){
+        when (val exp = testCase.expected) {
             is Ok -> {
                 val mutate1 = testCase.delete.mutate(parseToJsonElement)
                 assertEquals(exp.expectedJson, mutate1.toString())
@@ -44,16 +43,48 @@ internal class DeleteTest {
         val parseToJsonElement: JsonElement = json.encodeToJsonElement(A1.serializer(), a1)
 
         private val testData = listOf(
-            TestCase("Удаление простого поля", "z1".delete(), Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":"f11","f2":"f22"}]}},"z1":null}""")),
-            TestCase("Удаление целого объекта", "a2/a3".delete(), Ok("""{"a2":{"a3":null},"z1":15}""")),
-            TestCase("Удаление целого массива", "a2/a3/a4".delete(), Ok("""{"a2":{"a3":{"a4":null}},"z1":15}""")),
-            TestCase("Удаление элемента массива", "a2/a3/a4[0]".delete(), Ok("""{"a2":{"a3":{"a4":[{"f1":"f11","f2":"f22"}]}},"z1":15}""")),
-            TestCase("Удаление иного элемента массива", "a2/a3/a4[1]".delete(), Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"}]}},"z1":15}""")),
-            TestCase("Удаление не существующего элемента массива", "a2/a3/a4[3]".delete(), Err("json element a4 not contains index 3")),
-            TestCase("Удаление задано буквой элемента массива", "a2/a3/a4[j]".delete(), Err("For input string: \"j\"")),
-            TestCase("Удаление не существующего элемента массива", "a2/a3/a4[-1]".delete(), Err("json element a4 not contains index -1")),
-            TestCase("Удаление несуществующего объекта", "a2/a33".delete(), Err("In JsonObject not found field 'a33' for Delete")),
-            TestCase("Удаление поля в элементе массива", "a2/a3/a4[1]/f1".delete(), Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":null,"f2":"f22"}]}},"z1":15}""")),
+            TestCase(
+                "Удаление простого поля",
+                delete { "z1" },
+                Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":"f11","f2":"f22"}]}},"z1":null}""")
+            ),
+            TestCase("Удаление целого объекта", delete { "a2/a3" }, Ok("""{"a2":{"a3":null},"z1":15}""")),
+            TestCase("Удаление целого массива", delete { "a2/a3/a4" }, Ok("""{"a2":{"a3":{"a4":null}},"z1":15}""")),
+            TestCase(
+                "Удаление элемента массива",
+                delete { "a2/a3/a4[0]" },
+                Ok("""{"a2":{"a3":{"a4":[{"f1":"f11","f2":"f22"}]}},"z1":15}""")
+            ),
+            TestCase(
+                "Удаление иного элемента массива",
+                delete { "a2/a3/a4[1]" },
+                Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"}]}},"z1":15}""")
+            ),
+            TestCase(
+                "Удаление не существующего элемента массива",
+                delete { "a2/a3/a4[3]" },
+                Err("json element a4 not contains index 3")
+            ),
+            TestCase(
+                "Удаление задано буквой элемента массива",
+                delete { "a2/a3/a4[j]" },
+                Err("For input string: \"j\"")
+            ),
+            TestCase(
+                "Удаление не существующего элемента массива",
+                delete { "a2/a3/a4[-1]" },
+                Err("json element a4 not contains index -1")
+            ),
+            TestCase(
+                "Удаление несуществующего объекта",
+                delete { "a2/a33" },
+                Err("In JsonObject not found field 'a33' for Delete")
+            ),
+            TestCase(
+                "Удаление поля в элементе массива",
+                delete { "a2/a3/a4[1]/f1" },
+                Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":null,"f2":"f22"}]}},"z1":15}""")
+            ),
         )
 
 
@@ -65,7 +96,7 @@ internal class DeleteTest {
     data class TestCase(
         val description: String,
         val delete: Delete,
-        val expected: IExpected
+        val expected: IExpected,
     )
 
     sealed interface IExpected
@@ -73,6 +104,6 @@ internal class DeleteTest {
     data class Ok(val expectedJson: String) : IExpected
     data class Err(
         val expectedTextError: String,
-        val throwable: Class<*> = IllegalStateException::class.java
+        val throwable: Class<*> = IllegalStateException::class.java,
     ) : IExpected
 }

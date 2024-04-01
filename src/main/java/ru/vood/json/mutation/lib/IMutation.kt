@@ -106,11 +106,9 @@ sealed interface IMutation {
     }
 
     companion object {
-        fun String.delete() = Delete(JsonPath(this))
-
+        fun delete(f: ()->String) = Delete(JsonPath(f()))
 
         infix fun String.mutateToValue(jsonValue: Boolean?): Mutate = Mutate(JsonPath(this), JsonPrimitive(jsonValue))
-
 
         infix fun String.mutateToValue(jsonValue: Number?): Mutate = Mutate(JsonPath(this), JsonPrimitive(jsonValue))
 
