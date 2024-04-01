@@ -11,7 +11,6 @@ sealed interface IMutation {
         val (name, arrayIndex, isLast) = nodeProperty(path)
 
         return when {
-
             isLast && arrayIndex == null && jsonElement is JsonObject -> {
                 val addElement = when (this) {
                     is Delete -> {
