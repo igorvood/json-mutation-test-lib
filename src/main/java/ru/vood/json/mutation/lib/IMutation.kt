@@ -42,19 +42,17 @@ sealed interface IMutation {
                     is Delete -> {
                         val childrenJsonElement = (jsonElement[name]
                             ?: error("In JsonObject not found field '${name}' for ${Delete::class.simpleName}"))
-                        mutateRecurcive(childrenJsonElement, path.drop(1))
+                        val mutateRecurcive = mutateRecurcive(childrenJsonElement, path.drop(1))
+                        JsonObject(jsonElement.plus(name to mutateRecurcive))
                     }
                     is Mutate -> {
-
                         val childrenJsonElement = jsonElement[name]?:JsonObject(mapOf())
                         val mutateRecurcive = mutateRecurcive(childrenJsonElement, path.drop(1))
-                        jsonElement.plus(name to mutateRecurcive)
+
+                        JsonObject(jsonElement.plus(name to mutateRecurcive))
                     }
                 }
-                val childrenJsonElement =
-                    jsonElement[name] ?: error("json element ${name} not found for delete 1")
-                val mutatedJson = mutateRecurcive(childrenJsonElement, path.drop(1))
-                JsonObject(jsonElement.plus(path[0] to mutatedJson))
+                addElement
             }
             isLast && arrayIndex != null && jsonElement is JsonObject -> {
                 val jsonElement1: JsonObject = jsonElement
@@ -91,12 +89,12 @@ sealed interface IMutation {
                 }
 
             }
-//            !isLast && arrayIndex != null && jsonElement is JsonPrimitive -> {
-//                when(this){
-//                    is Mutate -> JsonObject(mapOf(name to jsonElement ))
-//                    is Delete -> error("Delete not compatible")
-//                }
-//            }
+            !isLast && jsonElement is JsonPrimitive -> {
+                when(this){
+                    is Mutate -> error("Unable add new object to JsonPrimitive")
+                    is Delete -> error("Delete not compatible")
+                }
+            }
 
             jsonElement is JsonPrimitive || jsonElement is JsonArray -> if (path.isEmpty()) jsonElement else {
                 error("JsonPrimitive found")
