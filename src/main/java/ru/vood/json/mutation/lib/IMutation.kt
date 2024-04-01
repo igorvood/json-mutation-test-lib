@@ -6,8 +6,8 @@ import kotlinx.serialization.json.*
 sealed interface IMutation {
     val jsonPath: JsonPath
     val value: JsonElement
-    fun mutate(mutatedJson: JsonElement): JsonElement = mutateRecurcive(mutatedJson, jsonPath.value.split("/"))
-    fun mutateRecurcive(jsonElement: JsonElement, path: List<String>): JsonElement {
+    fun mutate(mutatedJson: JsonElement): JsonElement = mutateRecursive(mutatedJson, jsonPath.value.split("/"))
+    fun mutateRecursive(jsonElement: JsonElement, path: List<String>): JsonElement {
         val (name, arrayIndex, isLast) = nodeProperty(path)
 
 
@@ -34,12 +34,12 @@ sealed interface IMutation {
                     is Delete -> {
                         val childrenJsonElement = (jsonElement[name]
                             ?: error("In JsonObject not found field '${name}' for ${Delete::class.simpleName}"))
-                        val mutateRecurcive = mutateRecurcive(childrenJsonElement, path.drop(1))
+                        val mutateRecurcive = mutateRecursive(childrenJsonElement, path.drop(1))
                         JsonObject(jsonElement.plus(name to mutateRecurcive))
                     }
                     is Mutate -> {
                         val childrenJsonElement = jsonElement[name]?:JsonObject(mapOf())
-                        val mutateRecurcive = mutateRecurcive(childrenJsonElement, path.drop(1))
+                        val mutateRecurcive = mutateRecursive(childrenJsonElement, path.drop(1))
 
                         JsonObject(jsonElement.plus(name to mutateRecurcive))
                     }
@@ -70,7 +70,7 @@ sealed interface IMutation {
                         require(arrayIndex >= 0 && arrayIndex < childrenJsonElement.size) { "json element $name not contains index $arrayIndex" }
                         val filterIndexed = childrenJsonElement.mapIndexed() { q, e ->
                             if (q == arrayIndex) {
-                                mutateRecurcive(e, path.drop(1))
+                                mutateRecursive(e, path.drop(1))
                             } else e
                         }
                         val map = listOf(name to JsonArray(filterIndexed))
