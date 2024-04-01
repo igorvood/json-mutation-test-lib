@@ -91,12 +91,12 @@ sealed interface IMutation {
                 }
 
             }
-            !isLast && arrayIndex != null && jsonElement is JsonPrimitive -> {
-                when(this){
-                    is Mutate -> JsonObject(mapOf(name to jsonElement ))
-                    is Delete -> error("Delete not compatible")
-                }
-            }
+//            !isLast && arrayIndex != null && jsonElement is JsonPrimitive -> {
+//                when(this){
+//                    is Mutate -> JsonObject(mapOf(name to jsonElement ))
+//                    is Delete -> error("Delete not compatible")
+//                }
+//            }
 
             jsonElement is JsonPrimitive || jsonElement is JsonArray -> if (path.isEmpty()) jsonElement else {
                 error("JsonPrimitive found")
