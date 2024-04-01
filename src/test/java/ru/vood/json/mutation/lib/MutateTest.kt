@@ -9,7 +9,7 @@ import ru.vood.json.mutation.lib.IMutation.Companion.mutateToValue
 
 data class TestCase(
     val description: String,
-    val delete: IMutation,
+    val mutation: IMutation,
     val expected: IExpected,
 ) : WithDataTestName {
     override fun dataTestName(): String = description
@@ -25,32 +25,16 @@ data class Err(
 
 class MutateTest : FunSpec({
     withData(
-//        TestCase(
-//            "изменение значения простого поля на строчку",
-//            "z1" mutate1 "q",
-//            Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":"f11","f2":"f22"}]}},"z1":"q"}""")
-//        ),
-//        TestCase(
-//            "изменение значения простого поля на логику",
-//            "z1" mutate1 false,
-//            Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":"f11","f2":"f22"}]}},"z1":false}""")
-//        ),
-//        TestCase(
-//            "изменение значения простого поля на число",
-//            "z1" mutate1 256,
-//            Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":"f11","f2":"f22"}]}},"z1":256}""")
-//        ),
-//        TestCase(
-//            "Добавление значения простого поля, число",
-//            "z2" mutate1 256,
-//            Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":"f11","f2":"f22"}]}},"z1":15,"z2":256}""")
-//        ),
-//        TestCase(
-//            "Добавление значения простого поля, строка",
-//            "z2" mutate1 "256",
-//            Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":"f11","f2":"f22"}]}},"z1":15,"z2":"256"}""")
-//        ),
-//
+        TestCase(
+            "Добавление значения простого поля, логика в элемент массива",
+            "a2/a3/a4[0]/f3" mutateToValue false,
+            Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2","f3":false},{"f1":"f11","f2":"f22"}]}},"z1":15}""")
+        ),
+        TestCase(
+            "Добавление значения простого поля, логика в не существующий элемент массива",
+            "a2/a3/a4[2]/f3" mutateToValue false,
+            Err("""json element a4 not contains index 2""")
+        ),
         TestCase(
             "Добавление значения простого поля, логика",
             "z2" mutateToValue false,
@@ -81,7 +65,6 @@ class MutateTest : FunSpec({
             "z2/z3" mutateToValue "789",
             Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":"f11","f2":"f22"}]}},"z1":15,"z2":{"z3":"789"}}""")
         ),
-
         TestCase(
             "Добавление значения простого поля, с созданием объекта, логика",
             "z1/z2/z3" mutateToValue false,
