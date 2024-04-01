@@ -22,17 +22,3 @@ object EmptyMutationTree: IMutationTree{
     }
 }
 
-data class MT(
-    override val name: String,
-    override val mutation: List<IMutation>,
-    override val children: List<IMutationTree>,
-) : IMutationTree {
-
-    init {
-       require(mutation.isNotEmpty() || children.isNotEmpty())
-    }
-
-    override fun add(): IMutationTree {
-        TODO("Not yet implemented")
-    }
-}
