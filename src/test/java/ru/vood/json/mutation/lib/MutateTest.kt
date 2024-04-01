@@ -4,6 +4,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.WithDataTestName
 import io.kotest.datatest.withData
 import org.junit.jupiter.api.Assertions
+import ru.vood.json.mutation.lib.DeleteTest.Companion.json
 import ru.vood.json.mutation.lib.DeleteTest.Companion.parseToJsonElement
 import ru.vood.json.mutation.lib.IMutation.Companion.mutateToValue
 
@@ -24,6 +25,8 @@ data class Err(
 ) : IExpected
 
 class MutateTest : FunSpec({
+    val a4Value = A4("z", "x")
+    val a4JsonElement = json.encodeToJsonElement(A4.serializer(), a4Value)
     withData(
         TestCase(
             "Добавление значения простого поля, логика в элемент массива",
@@ -70,11 +73,21 @@ class MutateTest : FunSpec({
             "z1/z2/z3" mutateToValue false,
             Err("""Unable add new object to JsonPrimitive""")
         ),
+        TestCase(
+            "Добавление значения поля, на целый объект",
+            "a6" mutateToValue a4JsonElement,
+            Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":"f11","f2":"f22"}]}},"z1":15,"a6":{"f1":"z","f2":"x"}}""")
+        ),
 //        мутирование
         TestCase(
             "Мутирование значения простого поля, логика в элемент массива",
             "a2/a3/a4[0]/f2" mutateToValue false,
             Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":false},{"f1":"f11","f2":"f22"}]}},"z1":15}""")
+        ),
+        TestCase(
+            "Мутирование значения поля, на целый объект",
+            "a2" mutateToValue a4JsonElement,
+            Ok("""{"a2":{"f1":"z","f2":"x"},"z1":15}""")
         ),
 
 

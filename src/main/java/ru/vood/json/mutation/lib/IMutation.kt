@@ -38,7 +38,7 @@ sealed interface IMutation {
                         JsonObject(jsonElement.plus(name to mutateRecurcive))
                     }
                     is Mutate -> {
-                        val childrenJsonElement = jsonElement[name]?:JsonObject(mapOf())
+                        val childrenJsonElement = jsonElement[name] ?: JsonObject(mapOf())
                         val mutateRecurcive = mutateRecursive(childrenJsonElement, path.drop(1))
 
                         JsonObject(jsonElement.plus(name to mutateRecurcive))
@@ -82,7 +82,7 @@ sealed interface IMutation {
 
             }
             !isLast && jsonElement is JsonPrimitive -> {
-                when(this){
+                when (this) {
                     is Mutate -> error("Unable add new object to JsonPrimitive")
                     is Delete -> error("Delete not compatible")
                 }
@@ -110,13 +110,14 @@ sealed interface IMutation {
         fun String.delete() = Delete(JsonPath(this))
 
 
-        infix fun String.mutateToValue(jsonValue: Boolean?): Mutate = Mutate(JsonPath(this),JsonPrimitive(jsonValue))
+        infix fun String.mutateToValue(jsonValue: Boolean?): Mutate = Mutate(JsonPath(this), JsonPrimitive(jsonValue))
 
 
-        infix fun String.mutateToValue(jsonValue: Number?): Mutate = Mutate(JsonPath(this),JsonPrimitive(jsonValue))
+        infix fun String.mutateToValue(jsonValue: Number?): Mutate = Mutate(JsonPath(this), JsonPrimitive(jsonValue))
 
-        infix fun String.mutateToValue(jsonValue: String?): Mutate = Mutate(JsonPath(this),JsonPrimitive(jsonValue))
+        infix fun String.mutateToValue(jsonValue: String?): Mutate = Mutate(JsonPath(this), JsonPrimitive(jsonValue))
 
+        infix fun String.mutateToValue(jsonValue: JsonElement): Mutate = Mutate(JsonPath(this), jsonValue)
 
     }
 
