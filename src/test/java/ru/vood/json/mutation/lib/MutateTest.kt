@@ -5,7 +5,7 @@ import io.kotest.datatest.WithDataTestName
 import io.kotest.datatest.withData
 import org.junit.jupiter.api.Assertions
 import ru.vood.json.mutation.lib.DeleteTest.Companion.parseToJsonElement
-import ru.vood.json.mutation.lib.IMutation.Companion.mutate1
+import ru.vood.json.mutation.lib.IMutation.Companion.mutateToValue
 
 data class TestCase(
     val description: String,
@@ -53,18 +53,38 @@ class MutateTest : FunSpec({
 //
         TestCase(
             "Добавление значения простого поля, логика",
-            "z2" mutate1 false,
+            "z2" mutateToValue false,
             Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":"f11","f2":"f22"}]}},"z1":15,"z2":false}""")
         ),
         TestCase(
             "Добавление значения простого поля, логика во вложенный объект",
-            "z2/z3" mutate1 false,
+            "z2/z3" mutateToValue false,
             Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":"f11","f2":"f22"}]}},"z1":15,"z2":{"z3":false}}""")
+        ),
+        TestCase(
+            "Добавление значения простого поля, число",
+            "z2" mutateToValue 789,
+            Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":"f11","f2":"f22"}]}},"z1":15,"z2":789}""")
+        ),
+        TestCase(
+            "Добавление значения простого поля, число во вложенный объект",
+            "z2/z3" mutateToValue 789,
+            Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":"f11","f2":"f22"}]}},"z1":15,"z2":{"z3":789}}""")
+        ),
+        TestCase(
+            "Добавление значения простого поля, строка",
+            "z2" mutateToValue "789",
+            Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":"f11","f2":"f22"}]}},"z1":15,"z2":"789"}""")
+        ),
+        TestCase(
+            "Добавление значения простого поля, строка во вложенный объект",
+            "z2/z3" mutateToValue "789",
+            Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":"f11","f2":"f22"}]}},"z1":15,"z2":{"z3":"789"}}""")
         ),
 
         TestCase(
             "Добавление значения простого поля, с созданием объекта, логика",
-            "z1/z2/z3" mutate1 false,
+            "z1/z2/z3" mutateToValue false,
             Err("""Unable add new object to JsonPrimitive""")
         ),
 

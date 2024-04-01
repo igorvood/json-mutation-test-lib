@@ -8,15 +8,7 @@ sealed interface IMutation {
     val value: JsonElement
     fun mutate(mutatedJson: JsonElement): JsonElement = mutateRecurcive(mutatedJson, jsonPath.value.split("/"))
     fun mutateRecurcive(jsonElement: JsonElement, path: List<String>): JsonElement {
-        val (name, arrayIndex, isLast) = if (path.isNotEmpty() && path.first().contains("[")) {
-            val node = path.first()
-            val indexOfBegin = node.indexOf("[")
-            val indexOfEnd = node.indexOf("]")
-            val name = node.substring(0, indexOfBegin)
-            (name to node.substring(indexOfBegin + 1, endIndex = indexOfEnd).toInt()).plus(path.size == 1)
-        } else {
-            (path.first() to null).plus(path.size == 1)
-        }
+        val (name, arrayIndex, isLast) = nodeProperty(path)
 
 
         return when {
@@ -104,16 +96,26 @@ sealed interface IMutation {
         }
     }
 
+    fun nodeProperty(path: List<String>) = if (path.isNotEmpty() && path.first().contains("[")) {
+        val node = path.first()
+        val indexOfBegin = node.indexOf("[")
+        val indexOfEnd = node.indexOf("]")
+        val name = node.substring(0, indexOfBegin)
+        (name to node.substring(indexOfBegin + 1, endIndex = indexOfEnd).toInt()).plus(path.size == 1)
+    } else {
+        (path.first() to null).plus(path.size == 1)
+    }
+
     companion object {
         fun String.delete() = Delete(JsonPath(this))
 
 
-        infix fun String.mutate1(jsonValue: Boolean?): Mutate = Mutate(JsonPath(this),JsonPrimitive(jsonValue))
+        infix fun String.mutateToValue(jsonValue: Boolean?): Mutate = Mutate(JsonPath(this),JsonPrimitive(jsonValue))
 
 
-        infix fun String.mutate1(jsonValue: Number?): Mutate = Mutate(JsonPath(this),JsonPrimitive(jsonValue))
+        infix fun String.mutateToValue(jsonValue: Number?): Mutate = Mutate(JsonPath(this),JsonPrimitive(jsonValue))
 
-        infix fun String.mutate1(jsonValue: String?): Mutate = Mutate(JsonPath(this),JsonPrimitive(jsonValue))
+        infix fun String.mutateToValue(jsonValue: String?): Mutate = Mutate(JsonPath(this),JsonPrimitive(jsonValue))
 
 
     }
