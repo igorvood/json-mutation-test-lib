@@ -70,8 +70,15 @@ class MutateTest : FunSpec({
             "z1/z2/z3" mutateToValue false,
             Err("""Unable add new object to JsonPrimitive""")
         ),
+//        мутирование
+        TestCase(
+            "Мутирование значения простого поля, логика в элемент массива",
+            "a2/a3/a4[0]/f2" mutateToValue false,
+            Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":false},{"f1":"f11","f2":"f22"}]}},"z1":15}""")
+        ),
 
-        ) { (a, delete, expected) ->
+
+        ) { (_, delete, expected) ->
         println("Etalon json")
         println(parseToJsonElement.toString())
 

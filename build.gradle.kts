@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    val kotestVersion = "5.8.0"
+    val kotestVersion = "5.6.2"
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
     implementation("io.arrow-kt:arrow-core:1.2.0")
 
