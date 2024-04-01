@@ -38,6 +38,19 @@ sealed interface IMutation {
                 JsonObject(map)
             }
             !isLast && arrayIndex == null && jsonElement is JsonObject -> {
+                val addElement = when (this) {
+                    is Delete -> {
+                        val childrenJsonElement = (jsonElement[name]
+                            ?: error("In JsonObject not found field '${name}' for ${Delete::class.simpleName}"))
+                        mutateRecurcive(childrenJsonElement, path.drop(1))
+                    }
+                    is Mutate -> {
+
+                        val childrenJsonElement = jsonElement[name]?:JsonObject(mapOf())
+                        val mutateRecurcive = mutateRecurcive(childrenJsonElement, path.drop(1))
+                        jsonElement.plus(name to mutateRecurcive)
+                    }
+                }
                 val childrenJsonElement =
                     jsonElement[name] ?: error("json element ${name} not found for delete 1")
                 val mutatedJson = mutateRecurcive(childrenJsonElement, path.drop(1))
@@ -78,7 +91,12 @@ sealed interface IMutation {
                 }
 
             }
-//            !isLast && arrayIndex != null && jsonElement is JsonObject -> {}
+            !isLast && arrayIndex != null && jsonElement is JsonPrimitive -> {
+                when(this){
+                    is Mutate -> JsonObject(mapOf(name to jsonElement ))
+                    is Delete -> error("Delete not compatible")
+                }
+            }
 
             jsonElement is JsonPrimitive || jsonElement is JsonArray -> if (path.isEmpty()) jsonElement else {
                 error("JsonPrimitive found")
