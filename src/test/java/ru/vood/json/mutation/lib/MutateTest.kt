@@ -89,7 +89,11 @@ class MutateTest : FunSpec({
             "a2" mutateToValue a4JsonElement,
             Ok("""{"a2":{"f1":"z","f2":"x"},"z1":15}""")
         ),
-
+        TestCase(
+            "Мутирование значения поля из не существующего массива",
+            "a2[0]" mutateToValue a4JsonElement,
+            Err("""json element a2 not JsonArray""")
+        ),
 
         ) { (_, delete, expected) ->
         println("Etalon json")

@@ -2,10 +2,14 @@ package ru.vood.json.mutation.lib
 
 import arrow.core.plus
 import kotlinx.serialization.json.*
+import ru.vood.json.mutation.lib.Js.json
 
 sealed interface IMutation {
+
     val jsonPath: JsonPath
     val value: JsonElement
+
+    fun mutate(mutatedJson: String): JsonElement = mutateRecursive(json.parseToJsonElement(mutatedJson), jsonPath.value.split("/"))
     fun mutate(mutatedJson: JsonElement): JsonElement = mutateRecursive(mutatedJson, jsonPath.value.split("/"))
     fun mutateRecursive(jsonElement: JsonElement, path: List<String>): JsonElement {
         val (name, arrayIndex, isLast) = nodeProperty(path)
