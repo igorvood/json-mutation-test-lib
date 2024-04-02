@@ -1,4 +1,5 @@
 plugins {
+    jacoco
     kotlin("jvm") version "1.7.21"
     kotlin("plugin.serialization") version "1.7.21"
     `maven-publish`
