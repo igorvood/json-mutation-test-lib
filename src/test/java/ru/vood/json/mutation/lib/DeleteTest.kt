@@ -85,6 +85,11 @@ internal class DeleteTest {
                 delete { "a2/a3/a4[1]/f1" },
                 Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":null,"f2":"f22"}]}},"z1":15}""")
             ),
+            TestCase(
+                "Удаление не существующего поля",
+                delete { "a21/a3/a4[1]/f1" },
+                Err("""In JsonObject not found field 'a21' for Delete""")
+            ),
         )
 
 
