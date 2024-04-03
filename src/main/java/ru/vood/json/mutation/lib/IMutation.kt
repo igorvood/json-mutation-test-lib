@@ -17,12 +17,12 @@ sealed interface IMutation {
         return when {
             isLast && arrayIndex == null && jsonElement is JsonObject -> {
                 val addElement = when (this) {
-                    is Delete -> {
+                    is Delete, is Mutate -> {
                         jsonElement[name]
-                            ?: error("In JsonObject not found field '${name}' for ${Delete::class.simpleName}")
+                            ?: error("In JsonObject not found field '${name}' for $this")
                         emptyMap()
                     }
-                    is Mutate -> mapOf(name to value)
+                    is Add -> mapOf(name to value)
                 }
                 val map = jsonElement.entries.map { entry ->
                     when (entry.key == name) {
@@ -41,24 +41,27 @@ sealed interface IMutation {
                         JsonObject(jsonElement.plus(name to mutateRecurcive))
                     }
                     is Mutate -> {
+                        val childrenJsonElement = jsonElement[name] ?: error("In JsonObject not found field '${name}' for $this")
+                        val mutateRecurcive = mutateRecursive(childrenJsonElement, path.drop(1))
+                        JsonObject(jsonElement.plus(name to mutateRecurcive))
+                    }
+                    is Add -> {
                         val childrenJsonElement = jsonElement[name] ?: JsonObject(mapOf())
                         val mutateRecurcive = mutateRecursive(childrenJsonElement, path.drop(1))
-
                         JsonObject(jsonElement.plus(name to mutateRecurcive))
                     }
                 }
                 addElement
             }
             isLast && arrayIndex != null && jsonElement is JsonObject -> {
-                val jsonElement1: JsonObject = jsonElement
                 val childrenJsonElement =
-                    jsonElement1[name] ?: error("json element ${name} not found for delete 1")
+                    jsonElement[name] ?: error("json element ${name} not found for delete 1")
                 when (childrenJsonElement) {
                     is JsonArray -> {
                         require(arrayIndex >= 0 && arrayIndex < childrenJsonElement.size) { "json element $name not contains index $arrayIndex" }
                         val filterIndexed = childrenJsonElement.filterIndexed { q, e -> q != arrayIndex }
                         val map = listOf(name to JsonArray(filterIndexed))
-                        val content: Map<String, JsonElement> = jsonElement1.plus(map)
+                        val content: Map<String, JsonElement> = jsonElement.plus(map)
                         JsonObject(content)
                     }
                     else -> error("json element ${name} not JsonArray")
@@ -86,8 +89,7 @@ sealed interface IMutation {
             }
             !isLast && jsonElement is JsonPrimitive -> {
                 when (this) {
-                    is Mutate -> error("Unable add new object to JsonPrimitive")
-                    is Delete -> error("Delete not compatible")
+                    is Add, is Delete, is Mutate -> error("$this not compatible for JsonPrimitive with value $jsonElement")
                 }
             }
 
@@ -112,13 +114,22 @@ sealed interface IMutation {
     companion object {
         fun delete(f: ()->String) = Delete(JsonPath(f()))
 
-        infix fun String.mutateToValue(jsonValue: Boolean?): Mutate = Mutate(JsonPath(this), JsonPrimitive(jsonValue))
+        infix fun String.mutateTo(jsonValue: Boolean?): Mutate = Mutate(JsonPath(this), JsonPrimitive(jsonValue))
 
-        infix fun String.mutateToValue(jsonValue: Number?): Mutate = Mutate(JsonPath(this), JsonPrimitive(jsonValue))
+        infix fun String.mutateTo(jsonValue: Number?): Mutate = Mutate(JsonPath(this), JsonPrimitive(jsonValue))
 
-        infix fun String.mutateToValue(jsonValue: String?): Mutate = Mutate(JsonPath(this), JsonPrimitive(jsonValue))
+        infix fun String.mutateTo(jsonValue: String?): Mutate = Mutate(JsonPath(this), JsonPrimitive(jsonValue))
 
-        infix fun String.mutateToValue(jsonValue: JsonElement): Mutate = Mutate(JsonPath(this), jsonValue)
+        infix fun String.mutateTo(jsonValue: JsonElement): Mutate = Mutate(JsonPath(this), jsonValue)
+
+        infix fun String.add(jsonValue: Boolean?): Add = Add(JsonPath(this), JsonPrimitive(jsonValue))
+
+        infix fun String.add(jsonValue: Number?): Add = Add(JsonPath(this), JsonPrimitive(jsonValue))
+
+        infix fun String.add(jsonValue: String?): Add = Add(JsonPath(this), JsonPrimitive(jsonValue))
+
+        infix fun String.add(jsonValue: JsonElement): Add = Add(JsonPath(this), jsonValue)
+
 
     }
 
@@ -136,14 +147,12 @@ data class Delete(
 data class Mutate(
     override val jsonPath: JsonPath,
     override val value: JsonElement,
-) : IMutation {
+) : IMutation
 
-}
-
-//data class Change(
-//    override val jsonPath: JsonPath,
-//    val value: JsonElement,
-//) : IMutation {
+data class Add(
+    override val jsonPath: JsonPath,
+    override val value: JsonElement,
+) : IMutation
 //    override fun mutate(mutatedJson: JsonElement): JsonElement {
 //        TODO("Not yet implemented")
 //    }

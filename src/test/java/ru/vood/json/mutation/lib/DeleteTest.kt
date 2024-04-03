@@ -13,7 +13,7 @@ internal class DeleteTest {
 
     @ParameterizedTest
     @MethodSource("ru.vood.json.mutation.lib.DeleteTest#testCaseData")
-    fun mutate(testCase: TestCase) {
+    fun test(testCase: TestCase) {
         println("Etalon json")
         println(parseToJsonElement.toString())
 
@@ -78,7 +78,7 @@ internal class DeleteTest {
             TestCase(
                 "Удаление несуществующего объекта",
                 delete { "a2/a33" },
-                Err("In JsonObject not found field 'a33' for Delete")
+                Err("In JsonObject not found field 'a33' for Delete(jsonPath=JsonPath(value=a2/a33))")
             ),
             TestCase(
                 "Удаление поля в элементе массива",

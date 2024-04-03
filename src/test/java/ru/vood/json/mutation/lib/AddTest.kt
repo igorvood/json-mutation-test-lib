@@ -9,90 +9,75 @@ import ru.vood.json.mutation.lib.DeleteTest.Companion.parseToJsonElement
 import ru.vood.json.mutation.lib.IMutation.Companion.add
 import ru.vood.json.mutation.lib.IMutation.Companion.mutateTo
 
-data class TestCase(
-    val description: String,
-    val mutation: IMutation,
-    val expected: IExpected,
-) : WithDataTestName {
-    override fun dataTestName(): String = description
-}
 
-sealed interface IExpected
-
-data class Ok(val expectedJson: String) : IExpected
-data class Err(
-    val expectedTextError: String,
-    val throwable: Class<*> = IllegalStateException::class.java,
-) : IExpected
-
-class MutateTest : FunSpec({
+class AddTest : FunSpec({
     val a4Value = A4("z", "x")
     val a4JsonElement = json.encodeToJsonElement(A4.serializer(), a4Value)
     withData(
         TestCase(
-            "[1] Мутирование значения простого поля, логика в элемент массива",
-            "a2/a3/a4[0]/f3" mutateTo false,
-            Err("""In JsonObject not found field 'f3' for Mutate(jsonPath=JsonPath(value=a2/a3/a4[0]/f3), value=false)""")
+            "[1] Добавление значения простого поля, логика в элемент массива",
+            "a2/a3/a4[0]/f3" add false,
+            Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2","f3":false},{"f1":"f11","f2":"f22"}]}},"z1":15}""")
         ),
         TestCase(
             "[2] Добавление значения простого поля, логика в не существующий элемент массива",
-            "a2/a3/a4[2]/f3" mutateTo false,
+            "a2/a3/a4[2]/f3" add false,
             Err("""json element a4 not contains index 2""")
         ),
         TestCase(
             "[3] Добавление значения простого поля, логика",
-            "z2" mutateTo false,
-            Err("""In JsonObject not found field 'z2' for Mutate(jsonPath=JsonPath(value=z2), value=false)""")
+            "z2" add false,
+            Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":"f11","f2":"f22"}]}},"z1":15,"z2":false}""")
         ),
         TestCase(
             "[4] Добавление значения простого поля, логика во вложенный объект",
-            "z2/z3" mutateTo false,
-            Err("""In JsonObject not found field 'z2' for Mutate(jsonPath=JsonPath(value=z2/z3), value=false)""")
+            "z2/z3" add false,
+            Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":"f11","f2":"f22"}]}},"z1":15,"z2":{"z3":false}}""")
         ),
         TestCase(
             "[5] Добавление значения простого поля, число",
-            "z2" mutateTo 789,
-            Err("""In JsonObject not found field 'z2' for Mutate(jsonPath=JsonPath(value=z2), value=789)""")
+            "z2" add 789,
+            Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":"f11","f2":"f22"}]}},"z1":15,"z2":789}""")
         ),
         TestCase(
             "[6] Добавление значения простого поля, число во вложенный объект",
-            "z2/z3" mutateTo 789,
-            Err("""In JsonObject not found field 'z2' for Mutate(jsonPath=JsonPath(value=z2/z3), value=789)""")
+            "z2/z3" add 789,
+            Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":"f11","f2":"f22"}]}},"z1":15,"z2":{"z3":789}}""")
         ),
         TestCase(
             "[7] Добавление значения простого поля, строка",
-            "z2" mutateTo "789",
-            Err("""In JsonObject not found field 'z2' for Mutate(jsonPath=JsonPath(value=z2), value="789")""")
+            "z2" add "789",
+            Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":"f11","f2":"f22"}]}},"z1":15,"z2":"789"}""")
         ),
         TestCase(
             "[8] Добавление значения простого поля, строка во вложенный объект",
-            "z2/z3" mutateTo "789",
-            Err("""In JsonObject not found field 'z2' for Mutate(jsonPath=JsonPath(value=z2/z3), value="789")""")
+            "z2/z3" add "789",
+            Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":"f11","f2":"f22"}]}},"z1":15,"z2":{"z3":"789"}}""")
         ),
         TestCase(
             "[9] Добавление значения простого поля, с созданием объекта, логика",
-            "z1/z2/z3" mutateTo false,
-            Err("""Mutate(jsonPath=JsonPath(value=z1/z2/z3), value=false) not compatible for JsonPrimitive with value 15""")
+            "z1/z2/z3" add false,
+            Err("""Add(jsonPath=JsonPath(value=z1/z2/z3), value=false) not compatible for JsonPrimitive with value 15""")
         ),
         TestCase(
             "[10] Добавление значения поля, на целый объект",
-            "a6" mutateTo a4JsonElement,
-            Err("""In JsonObject not found field 'a6' for Mutate(jsonPath=JsonPath(value=a6), value={"f1":"z","f2":"x"})""")
+            "a6" add a4JsonElement,
+            Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":"f11","f2":"f22"}]}},"z1":15,"a6":{"f1":"z","f2":"x"}}""")
         ),
 //        мутирование
         TestCase(
             "[11] Мутирование значения простого поля, логика в элемент массива",
-            "a2/a3/a4[0]/f2" mutateTo false,
+            "a2/a3/a4[0]/f2" add false,
             Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":false},{"f1":"f11","f2":"f22"}]}},"z1":15}""")
         ),
         TestCase(
-            "[13] Мутирование значения поля, на целый объект",
-            "a2" mutateTo a4JsonElement,
+            "[12] Мутирование значения поля, на целый объект",
+            "a2" add a4JsonElement,
             Ok("""{"a2":{"f1":"z","f2":"x"},"z1":15}""")
         ),
         TestCase(
-            "[15] Мутирование значения поля из не существующего массива",
-            "a2[0]" mutateTo a4JsonElement,
+            "[13] Мутирование значения поля из не существующего массива",
+            "a2[0]" add a4JsonElement,
             Err("""json element a2 not JsonArray""")
         ),
 

@@ -4,8 +4,9 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.WithDataTestName
 import io.kotest.datatest.withData
 import org.junit.jupiter.api.Assertions
+import ru.vood.json.mutation.lib.IMutation.Companion.add
 import ru.vood.json.mutation.lib.IMutation.Companion.delete
-import ru.vood.json.mutation.lib.IMutation.Companion.mutateToValue
+import ru.vood.json.mutation.lib.IMutation.Companion.mutateTo
 
 data class CompositeTestCase(
     val description: String,
@@ -22,13 +23,13 @@ class CompositeTest: FunSpec({
         CompositeTestCase("добавление и удаление",
             listOf(
                 delete { "a2" },
-                "a1/a3/a4/f3" mutateToValue false,
+                "a1/a3/a4/f3" add false,
             ),
             Ok("""{"a2":null,"z1":15,"a1":{"a3":{"a4":{"f3":false}}}}""")
         ),
         CompositeTestCase("удаление и добавление",
             listOf(
-                "a2/a3/a4[0]/f3" mutateToValue false,
+                "a2/a3/a4[0]/f3" add false,
                 delete { "a2/a3/a4[0]/f3" }
             ),
             Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2","f3":null},{"f1":"f11","f2":"f22"}]}},"z1":15}""")
