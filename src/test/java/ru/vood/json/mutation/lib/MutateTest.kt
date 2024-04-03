@@ -8,22 +8,6 @@ import ru.vood.json.mutation.lib.DeleteTest.Companion.parseToJsonElement
 import ru.vood.json.mutation.lib.IMutation.Companion.mutateTo
 import ru.vood.json.mutation.lib.Js.json
 
-data class TestCase(
-    val description: String,
-    val mutation: IMutation,
-    val expected: IExpected,
-) : WithDataTestName {
-    override fun dataTestName(): String = description
-}
-
-sealed interface IExpected
-
-data class Ok(val expectedJson: String) : IExpected
-data class Err(
-    val expectedTextError: String,
-    val throwable: Class<*> = IllegalStateException::class.java,
-) : IExpected
-
 class MutateTest : FunSpec({
     val a4Value = A4("z", "x")
     val a4JsonElement = json.encodeToJsonElement(A4.serializer(), a4Value)
