@@ -7,6 +7,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import ru.vood.json.mutation.lib.IMutation.Companion.delete
+import ru.vood.json.mutation.lib.Js.json
 
 internal class DeleteTest {
 
@@ -34,8 +35,6 @@ internal class DeleteTest {
     }
 
     companion object {
-        val json = Json { }
-
 
         val a1 = A1(A2(A3(listOf(A4("f1", "f2"), A4("f11", "f22")))), 15)
 

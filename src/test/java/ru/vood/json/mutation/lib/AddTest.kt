@@ -4,10 +4,10 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.WithDataTestName
 import io.kotest.datatest.withData
 import org.junit.jupiter.api.Assertions
-import ru.vood.json.mutation.lib.DeleteTest.Companion.json
 import ru.vood.json.mutation.lib.DeleteTest.Companion.parseToJsonElement
 import ru.vood.json.mutation.lib.IMutation.Companion.add
 import ru.vood.json.mutation.lib.IMutation.Companion.mutateTo
+import ru.vood.json.mutation.lib.Js.json
 
 
 class AddTest : FunSpec({
