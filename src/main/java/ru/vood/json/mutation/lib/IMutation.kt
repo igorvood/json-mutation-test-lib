@@ -9,7 +9,9 @@ sealed interface IMutation {
     val jsonPath: JsonPath
     val value: JsonElement
 
-    fun mutate(mutatedJson: String): JsonElement = mutateRecursive(json.parseToJsonElement(mutatedJson), jsonPath.value.split("/"))
+    fun mutate(mutatedJson: String): JsonElement =
+        mutateRecursive(json.parseToJsonElement(mutatedJson), jsonPath.value.split("/"))
+
     fun mutate(mutatedJson: JsonElement): JsonElement = mutateRecursive(mutatedJson, jsonPath.value.split("/"))
     fun mutateRecursive(jsonElement: JsonElement, path: List<String>): JsonElement {
         val (name, arrayIndex, isLast) = nodeProperty(path)
@@ -41,7 +43,8 @@ sealed interface IMutation {
                         JsonObject(jsonElement.plus(name to mutateRecurcive))
                     }
                     is Mutate -> {
-                        val childrenJsonElement = jsonElement[name] ?: error("In JsonObject not found field '${name}' for $this")
+                        val childrenJsonElement =
+                            jsonElement[name] ?: error("In JsonObject not found field '${name}' for $this")
                         val mutateRecurcive = mutateRecursive(childrenJsonElement, path.drop(1))
                         JsonObject(jsonElement.plus(name to mutateRecurcive))
                     }
@@ -112,7 +115,7 @@ sealed interface IMutation {
     }
 
     companion object {
-        fun delete(f: ()->String) = Delete(JsonPath(f()))
+        fun delete(f: () -> String) = Delete(JsonPath(f()))
 
         infix fun String.mutateTo(jsonValue: Boolean?): Mutate = Mutate(JsonPath(this), JsonPrimitive(jsonValue))
 
