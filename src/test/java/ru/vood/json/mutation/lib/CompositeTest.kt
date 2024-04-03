@@ -6,7 +6,6 @@ import io.kotest.datatest.withData
 import org.junit.jupiter.api.Assertions
 import ru.vood.json.mutation.lib.IMutation.Companion.add
 import ru.vood.json.mutation.lib.IMutation.Companion.delete
-import ru.vood.json.mutation.lib.IMutation.Companion.mutateTo
 
 data class CompositeTestCase(
     val description: String,
@@ -17,10 +16,10 @@ data class CompositeTestCase(
 }
 
 
-
-class CompositeTest: FunSpec({
+class CompositeTest : FunSpec({
     withData(
-        CompositeTestCase("добавление и удаление",
+        CompositeTestCase(
+            "добавление и удаление",
             listOf(
                 delete { "a2" },
                 "a1/a3/a4/f3" add false,
@@ -34,7 +33,7 @@ class CompositeTest: FunSpec({
             ),
             Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2","f3":null},{"f1":"f11","f2":"f22"}]}},"z1":15}""")
         ),
-    ){(q,mutationList,expected) ->
+    ) { (q, mutationList, expected) ->
         println("Etalon json")
         println(DeleteTest.parseToJsonElement.toString())
 

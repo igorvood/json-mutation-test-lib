@@ -1,6 +1,5 @@
 package ru.vood.json.mutation.lib
 
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.params.ParameterizedTest
