@@ -19,12 +19,12 @@ internal class DeleteTest {
 
         when (val exp = testCase.expected) {
             is Ok -> {
-                val mutate1 = testCase.delete.mutate(parseToJsonElement)
+                val mutate1 = testCase.mutation.mutate(parseToJsonElement)
                 assertEquals(exp.expectedJson, mutate1.toString())
             }
             is Err -> {
                 val textError = exp.expectedTextError
-                kotlin.runCatching { testCase.delete.mutate(parseToJsonElement) }
+                kotlin.runCatching { testCase.mutation.mutate(parseToJsonElement) }
                     .map { error("must be exception") }
                     .getOrElse {
                         assertEquals(textError, it.message)
@@ -96,17 +96,5 @@ internal class DeleteTest {
 
     }
 
-    data class TestCase(
-        val description: String,
-        val delete: Delete,
-        val expected: IExpected,
-    )
 
-    sealed interface IExpected
-
-    data class Ok(val expectedJson: String) : IExpected
-    data class Err(
-        val expectedTextError: String,
-        val throwable: Class<*> = IllegalStateException::class.java,
-    ) : IExpected
 }
