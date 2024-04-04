@@ -25,14 +25,14 @@ class CompositeTest : FunSpec({
                     delete { "a2" },
                     "a1/a3/a4/f3" add false,
                 ),
-                expected = Ok("""{"a2":null,"z1":15,"a1":{"a3":{"a4":{"f3":false}}}}""")
+                expected = Ok("""{"a2":null,"z1":15,"list":["P","O"],"a1":{"a3":{"a4":{"f3":false}}}}""")
             ),
             CompositeTestCase(description = "удаление и добавление",
                 mutations = listOf(
                     "a2/a3/a4[0]/f3" add false,
                     delete { "a2/a3/a4[0]/f3" }
                 ),
-                expected = Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2","f3":null},{"f1":"f11","f2":"f22"}]}},"z1":15}""")),
+                expected = Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2","f3":null},{"f1":"f11","f2":"f22"}]}},"z1":15,"list":["P","O"]}""")),
         )
     ) { (q, mutationList, expected) ->
         println("Etalon json")
