@@ -35,7 +35,7 @@ internal class DeleteTest {
 
     companion object {
 
-        val a1 = A1(A2(A3(listOf(A4("f1", "f2"), A4("f11", "f22")))), 15)
+        val a1 = A1(A2(A3(listOf(A4("f1", "f2"), A4("f11", "f22")))), 15, listOf("P", "O"))
 
 
         val parseToJsonElement: JsonElement = json.encodeToJsonElement(A1.serializer(), a1)
