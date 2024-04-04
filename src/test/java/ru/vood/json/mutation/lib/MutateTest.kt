@@ -1,8 +1,8 @@
 package ru.vood.json.mutation.lib
 
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.datatest.WithDataTestName
 import io.kotest.datatest.withData
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Assertions
 import ru.vood.json.mutation.lib.DeleteTest.Companion.parseToJsonElement
 import ru.vood.json.mutation.lib.IMutation.Companion.mutateTo
@@ -66,15 +66,15 @@ class MutateTest : FunSpec({
         TestCase(
             "[11] Мутирование значения простого поля, логика в элемент массива",
             "a2/a3/a4[0]/f2" mutateTo false,
-            Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":false},{"f1":"f11","f2":"f22"}]}},"z1":15}""")
+            Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":false},{"f1":"f11","f2":"f22"}]}},"z1":15,"list":["P","O"]}""")
         ),
         TestCase(
-            "[13] Мутирование значения поля, на целый объект",
+            "[12] Мутирование значения поля, на целый объект",
             "a2" mutateTo a4JsonElement,
-            Ok("""{"a2":{"f1":"z","f2":"x"},"z1":15}""")
+            Ok("""{"a2":{"f1":"z","f2":"x"},"z1":15,"list":["P","O"]}""")
         ),
         TestCase(
-            "[15] Мутирование значения поля из не существующего массива",
+            "[13] Мутирование значения поля из не существующего массива",
             "a2[0]" mutateTo a4JsonElement,
             Err("""json element a2 not JsonArray""")
         ),
@@ -86,7 +86,7 @@ class MutateTest : FunSpec({
         when (expected) {
             is Ok -> {
                 val mutate1 = delete.mutate(parseToJsonElement)
-                Assertions.assertEquals(expected.expectedJson, mutate1.toString())
+                mutate1.toString() shouldBe expected.expectedJson
             }
             is Err -> {
                 val textError = expected.expectedTextError
