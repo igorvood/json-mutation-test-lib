@@ -15,7 +15,7 @@ class MutateTest : FunSpec({
         TestCase(
             "[1] Мутирование значения простого поля, логика в элемент массива",
             "a2/a3/a4[0]/f3" mutateTo false,
-            Err("""In JsonObject not found field 'f3' for Mutate(jsonPath=JsonPath(value=a2/a3/a4[0]/f3), value=false)""")
+            Err("""In JsonObject not found field 'a2/a3/a4[0]/f3' for Mutate(jsonPath=JsonPath(value=a2/a3/a4[0]/f3), value=false)""")
         ),
         TestCase(
             "[2] Добавление значения простого поля, логика в не существующий элемент массива",

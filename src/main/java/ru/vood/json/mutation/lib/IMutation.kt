@@ -10,21 +10,28 @@ sealed interface IMutation {
     val value: JsonElement
 
     fun mutate(mutatedJson: String): JsonElement =
-        mutateRecursive(json.parseToJsonElement(mutatedJson), jsonPath.value.split("/"))
+        mutateRecursive(json.parseToJsonElement(mutatedJson), jsonPath.value.split("/"), emptyList())
 
-    fun mutate(mutatedJson: JsonElement): JsonElement = mutateRecursive(mutatedJson, jsonPath.value.split("/"))
-    fun mutateRecursive(jsonElement: JsonElement, path: List<String>): JsonElement {
+    fun mutate(mutatedJson: JsonElement): JsonElement = mutateRecursive(mutatedJson, jsonPath.value.split("/"), emptyList())
+
+    private fun parentNewStr (parentNew:  List<String>) : String= parentNew.joinToString("/")
+    fun mutateRecursive(jsonElement: JsonElement, path: List<String>, parent: List<String>): JsonElement {
         val (name, arrayIndex, isLast) = nodeProperty(path)
+        val parentNew = parent.plus(arrayIndex?.let { i -> "$name[$i]" } ?: name)
+//        val parentNewStr = { parentNew.joinToString("/") }
 
         return when {
             isLast && arrayIndex == null && jsonElement is JsonObject -> {
                 val addElement = when (this) {
                     is Delete, is Mutate -> {
                         jsonElement[name]
-                            ?: error("In JsonObject not found field '${name}' for $this")
+                            ?: error("In JsonObject not found field '${parentNewStr(parentNew)}' for $this")
                         emptyMap()
                     }
-                    is Add -> mapOf(name to value)
+                    is Add -> {
+                        require(jsonElement[name] ==null){"In JsonObject found field '${parentNewStr(parentNew)}' for $this"}
+                        mapOf(name to value)
+                    }
                 }
                 val map = jsonElement.entries.map { entry ->
                     when (entry.key == name) {
@@ -38,19 +45,19 @@ sealed interface IMutation {
                 val addElement = when (this) {
                     is Delete -> {
                         val childrenJsonElement = (jsonElement[name]
-                            ?: error("In JsonObject not found field '${name}' for ${Delete::class.simpleName}"))
-                        val mutateRecurcive = mutateRecursive(childrenJsonElement, path.drop(1))
+                            ?: error("In JsonObject not found field '${parentNewStr(parentNew)}' for ${Delete::class.simpleName}"))
+                        val mutateRecurcive = mutateRecursive(childrenJsonElement, path.drop(1), parentNew)
                         JsonObject(jsonElement.plus(name to mutateRecurcive))
                     }
                     is Mutate -> {
                         val childrenJsonElement =
-                            jsonElement[name] ?: error("In JsonObject not found field '${name}' for $this")
-                        val mutateRecurcive = mutateRecursive(childrenJsonElement, path.drop(1))
+                            jsonElement[name] ?: error("In JsonObject not found field '${parentNewStr(parentNew)}' for $this")
+                        val mutateRecurcive = mutateRecursive(childrenJsonElement, path.drop(1), parentNew)
                         JsonObject(jsonElement.plus(name to mutateRecurcive))
                     }
                     is Add -> {
                         val childrenJsonElement = jsonElement[name] ?: JsonObject(mapOf())
-                        val mutateRecurcive = mutateRecursive(childrenJsonElement, path.drop(1))
+                        val mutateRecurcive = mutateRecursive(childrenJsonElement, path.drop(1), parentNew)
                         JsonObject(jsonElement.plus(name to mutateRecurcive))
                     }
                 }
@@ -58,13 +65,28 @@ sealed interface IMutation {
             }
             isLast && arrayIndex != null && jsonElement is JsonObject -> {
                 val childrenJsonElement =
-                    jsonElement[name] ?: error("json element ${name} not found for delete 1")
+                    jsonElement[name] ?: error("json element ${parentNewStr(parentNew)} not found for delete 1")
                 when (childrenJsonElement) {
                     is JsonArray -> {
-                        require(arrayIndex >= 0 && arrayIndex < childrenJsonElement.size) { "json element $name not contains index $arrayIndex" }
-                        val filterIndexed = childrenJsonElement.filterIndexed { q, e -> q != arrayIndex }
-                        val map = listOf(name to JsonArray(filterIndexed))
-                        val content: Map<String, JsonElement> = jsonElement.plus(map)
+                       val content = when(this){
+                            is Delete -> {
+                                require(arrayIndex >= 0 && arrayIndex < childrenJsonElement.size) { "Allowed range [0, ${childrenJsonElement.size-1}] for JsonArray ${parentNewStr(parentNew)} but it not contains index $arrayIndex for $this" }
+                                val filterIndexed = childrenJsonElement.filterIndexed { q, e -> q != arrayIndex }
+                                val map = listOf(name to JsonArray(filterIndexed))
+                                jsonElement.plus(map)
+                            }
+                           is Mutate-> {
+                               require(arrayIndex >= 0 && arrayIndex < childrenJsonElement.size) { "Allowed range [0, ${childrenJsonElement.size-1}] for JsonArray ${parentNewStr(parentNew)} but it not contains index $arrayIndex for $this" }
+                               val filterIndexed = childrenJsonElement.filterIndexed { q, e -> q != arrayIndex }
+                               val map = listOf(name to JsonArray(filterIndexed.plus(this.value)))
+                               jsonElement.plus(map)
+                           }
+                           is Add -> {
+                               require(arrayIndex >= 0 && arrayIndex == childrenJsonElement.size) { "Allowed number [${childrenJsonElement.size}] for JsonArray ${parentNewStr(parentNew)} but it equals [$arrayIndex] for $this" }
+                               val map = listOf(name to JsonArray(childrenJsonElement.plus(this.value)))
+                               jsonElement.plus(map)
+                           }
+                        }
                         JsonObject(content)
                     }
                     else -> error("json element ${name} not JsonArray")
@@ -79,7 +101,7 @@ sealed interface IMutation {
                         require(arrayIndex >= 0 && arrayIndex < childrenJsonElement.size) { "json element $name not contains index $arrayIndex" }
                         val filterIndexed = childrenJsonElement.mapIndexed() { q, e ->
                             if (q == arrayIndex) {
-                                mutateRecursive(e, path.drop(1))
+                                mutateRecursive(e, path.drop(1), parentNew)
                             } else e
                         }
                         val map = listOf(name to JsonArray(filterIndexed))

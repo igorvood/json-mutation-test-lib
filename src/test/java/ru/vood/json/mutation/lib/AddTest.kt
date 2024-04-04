@@ -64,17 +64,17 @@ class AddTest : FunSpec({
         ),
 //        мутирование
         TestCase(
-            "[11] Мутирование значения простого поля, логика в элемент массива",
+            "[11] Добавление значения простого поля, логика в элемент массива",
             "a2/a3/a4[0]/f2" add false,
-            Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":false},{"f1":"f11","f2":"f22"}]}},"z1":15}""")
+            Err("""In JsonObject found field 'a2/a3/a4[0]/f2' for Add(jsonPath=JsonPath(value=a2/a3/a4[0]/f2), value=false)""")
         ),
         TestCase(
-            "[12] Мутирование значения поля, на целый объект",
+            "[12] Добавление значения поля, на целый объект",
             "a2" add a4JsonElement,
-            Ok("""{"a2":{"f1":"z","f2":"x"},"z1":15}""")
+            Err("""In JsonObject found field 'a2' for Add(jsonPath=JsonPath(value=a2), value={"f1":"z","f2":"x"})""")
         ),
         TestCase(
-            "[13] Мутирование значения поля из не существующего массива",
+            "[13] Добавление значения поля из не существующего массива",
             "a2[0]" add a4JsonElement,
             Err("""json element a2 not JsonArray""")
         ),

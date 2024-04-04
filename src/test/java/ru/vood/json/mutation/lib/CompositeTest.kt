@@ -9,7 +9,7 @@ import ru.vood.json.mutation.lib.IMutation.Companion.delete
 
 data class CompositeTestCase(
     val description: String,
-    val mutation: List<IMutation>,
+    val mutations: List<IMutation>,
     val expected: IExpected,
 ) : WithDataTestName {
     override fun dataTestName(): String = description
@@ -18,21 +18,22 @@ data class CompositeTestCase(
 
 class CompositeTest : FunSpec({
     withData(
-        CompositeTestCase(
-            "добавление и удаление",
-            listOf(
-                delete { "a2" },
-                "a1/a3/a4/f3" add false,
+        listOf(
+            CompositeTestCase(
+                description = "добавление и удаление",
+                mutations = listOf(
+                    delete { "a2" },
+                    "a1/a3/a4/f3" add false,
+                ),
+                expected = Ok("""{"a2":null,"z1":15,"a1":{"a3":{"a4":{"f3":false}}}}""")
             ),
-            Ok("""{"a2":null,"z1":15,"a1":{"a3":{"a4":{"f3":false}}}}""")
-        ),
-        CompositeTestCase("удаление и добавление",
-            listOf(
-                "a2/a3/a4[0]/f3" add false,
-                delete { "a2/a3/a4[0]/f3" }
-            ),
-            Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2","f3":null},{"f1":"f11","f2":"f22"}]}},"z1":15}""")
-        ),
+            CompositeTestCase(description = "удаление и добавление",
+                mutations = listOf(
+                    "a2/a3/a4[0]/f3" add false,
+                    delete { "a2/a3/a4[0]/f3" }
+                ),
+                expected = Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2","f3":null},{"f1":"f11","f2":"f22"}]}},"z1":15}""")),
+        )
     ) { (q, mutationList, expected) ->
         println("Etalon json")
         println(DeleteTest.parseToJsonElement.toString())

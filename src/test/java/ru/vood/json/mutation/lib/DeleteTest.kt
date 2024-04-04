@@ -61,7 +61,7 @@ internal class DeleteTest {
             TestCase(
                 "Удаление не существующего элемента массива",
                 delete { "a2/a3/a4[3]" },
-                Err("json element a4 not contains index 3")
+                Err("Allowed range [0, 1] for JsonArray a2/a3/a4[3] but it not contains index 3 for Delete(jsonPath=JsonPath(value=a2/a3/a4[3]))")
             ),
             TestCase(
                 "Удаление задано буквой элемента массива",
@@ -71,12 +71,12 @@ internal class DeleteTest {
             TestCase(
                 "Удаление не существующего элемента массива",
                 delete { "a2/a3/a4[-1]" },
-                Err("json element a4 not contains index -1")
+                Err("Allowed range [0, 1] for JsonArray a2/a3/a4[-1] but it not contains index -1 for Delete(jsonPath=JsonPath(value=a2/a3/a4[-1]))")
             ),
             TestCase(
                 "Удаление несуществующего объекта",
                 delete { "a2/a33" },
-                Err("In JsonObject not found field 'a33' for Delete(jsonPath=JsonPath(value=a2/a33))")
+                Err("In JsonObject not found field 'a2/a33' for Delete(jsonPath=JsonPath(value=a2/a33))")
             ),
             TestCase(
                 "Удаление поля в элементе массива",
