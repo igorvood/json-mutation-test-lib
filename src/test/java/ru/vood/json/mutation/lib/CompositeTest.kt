@@ -34,7 +34,7 @@ class CompositeTest : FunSpec({
                 ),
                 expected = Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2","f3":null},{"f1":"f11","f2":"f22"}]}},"z1":15,"list":["P","O"]}""")),
         )
-    ) { (q, mutationList, expected) ->
+    ) { (_, mutationList, expected) ->
         println("Etalon json")
         println(DeleteTest.parseToJsonElement.toString())
 

@@ -47,6 +47,20 @@ class TestAll : FunSpec({
                 expectedMutate = Err("""In JsonObject not found field 'z99' for Mutate(jsonPath=JsonPath(value=z99), value=1.0)"""),
                 expectedDelete = Err("""In JsonObject not found field 'z99' for Delete(jsonPath=JsonPath(value=z99))"""),
             ),
+            TestCaseOnAll(
+                description = "значение последнего в path поля который в path числится как массив но в json таковым не является",
+                jsonPath = JsonPath("""a2[0]"""),
+                expectedAdd = Err("""Json element a2[0] not JsonArray, it has type JsonObject"""),
+                expectedMutate = Err("""Json element a2[0] not JsonArray, it has type JsonObject"""),
+                expectedDelete = Err("""Json element a2[0] not JsonArray, it has type JsonObject"""),
+            ),
+            TestCaseOnAll(
+                description = "значение не последнего в path поля который в path числится как массив но в json таковым не является",
+                jsonPath = JsonPath("""a2[0]/w2"""),
+                expectedAdd = Err("""Json element a2[0] not JsonArray, it has type JsonObject"""),
+                expectedMutate = Err("""Json element a2[0] not JsonArray, it has type JsonObject"""),
+                expectedDelete = Err("""Json element a2[0] not JsonArray, it has type JsonObject"""),
+            ),
         ).flatMap { ta ->
             listOf(
                 TestCase(
@@ -73,8 +87,10 @@ class TestAll : FunSpec({
 
         when (expected) {
             is Ok -> {
-                val mutate1 = delete.mutate(DeleteTest.parseToJsonElement)
-                mutate1.toString() shouldBe  expected.expectedJson
+                val mutateJsonElement = delete.mutate(DeleteTest.parseToJsonElement)
+                val jsonStr = delete.mutate(DeleteTest.parseToJsonElement.toString())
+                mutateJsonElement shouldBe jsonStr
+                mutateJsonElement.toString() shouldBe  expected.expectedJson
             }
             is Err -> {
                 val textError = expected.expectedTextError

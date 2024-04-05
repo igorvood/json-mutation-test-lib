@@ -69,13 +69,13 @@ sealed interface IMutation {
                        val content = when(this){
                             is Delete -> {
                                 require(arrayIndex >= 0 && arrayIndex < childrenJsonElement.size) { "Allowed range [0, ${childrenJsonElement.size-1}] for JsonArray ${parentNewStr(parentNew)} but it not contains index $arrayIndex for $this" }
-                                val filterIndexed = childrenJsonElement.filterIndexed { q, e -> q != arrayIndex }
+                                val filterIndexed = childrenJsonElement.filterIndexed { q, _ -> q != arrayIndex }
                                 val map = listOf(name to JsonArray(filterIndexed))
                                 jsonElement.plus(map)
                             }
                            is Mutate-> {
                                require(arrayIndex >= 0 && arrayIndex < childrenJsonElement.size) { "Allowed range [0, ${childrenJsonElement.size-1}] for JsonArray ${parentNewStr(parentNew)} but it not contains index $arrayIndex for $this" }
-                               val filterIndexed = childrenJsonElement.filterIndexed { q, e -> q != arrayIndex }
+                               val filterIndexed = childrenJsonElement.filterIndexed { q, _ -> q != arrayIndex }
                                val map = listOf(name to JsonArray(filterIndexed.plus(this.value)))
                                jsonElement.plus(map)
                            }
@@ -87,7 +87,7 @@ sealed interface IMutation {
                         }
                         JsonObject(content)
                     }
-                    else -> error("json element ${name} not JsonArray")
+                    else -> error("Json element ${parentNewStr(parentNew)} not JsonArray, it has type ${childrenJsonElement::class.simpleName}")
                 }
             }
             !isLast && arrayIndex != null && jsonElement is JsonObject -> {
@@ -106,7 +106,7 @@ sealed interface IMutation {
                         val content: Map<String, JsonElement> = jsonElement1.plus(map)
                         JsonObject(content)
                     }
-                    else -> error("json element ${name} not JsonArray")
+                    else -> error("Json element ${parentNewStr(parentNew)} not JsonArray, it has type ${childrenJsonElement::class.simpleName}")
                 }
 
             }
@@ -116,10 +116,7 @@ sealed interface IMutation {
                 }
             }
 
-            jsonElement is JsonPrimitive || jsonElement is JsonArray -> if (path.isEmpty()) jsonElement else {
-                error("JsonPrimitive found")
-            }
-            else -> error("name, arrayIndex, isLast")
+            else -> error("Unbelivable case")
 
         }
     }

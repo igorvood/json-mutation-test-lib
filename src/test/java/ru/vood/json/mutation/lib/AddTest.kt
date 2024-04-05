@@ -76,7 +76,7 @@ class AddTest : FunSpec({
         TestCase(
             "[13] Добавление значения поля из не существующего массива",
             "a2[0]" add a4JsonElement,
-            Err("""json element a2 not JsonArray""")
+            Err("""Json element a2[0] not JsonArray, it has type JsonObject""")
         ),
 
         ) { (_, delete, expected) ->
