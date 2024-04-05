@@ -9,7 +9,8 @@ sealed interface IMutation {
     val jsonPath: JsonPath
     val value: JsonElement
 
-    fun mutate(mutatedJson: String): JsonElement =
+
+    fun mutate(mutatedJson: String, json: Json = Js.json): JsonElement =
         mutateRecursive(json.parseToJsonElement(mutatedJson), jsonPath.value.split("/"), emptyList())
 
     fun mutate(mutatedJson: JsonElement): JsonElement = mutateRecursive(mutatedJson, jsonPath.value.split("/"), emptyList())
