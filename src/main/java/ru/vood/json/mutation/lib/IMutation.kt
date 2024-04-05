@@ -14,11 +14,9 @@ sealed interface IMutation {
 
     fun mutate(mutatedJson: JsonElement): JsonElement = mutateRecursive(mutatedJson, jsonPath.value.split("/"), emptyList())
 
-    private fun parentNewStr (parentNew:  List<String>) : String= parentNew.joinToString("/")
     fun mutateRecursive(jsonElement: JsonElement, path: List<String>, parent: List<String>): JsonElement {
         val (name, arrayIndex, isLast) = nodeProperty(path)
         val parentNew = parent.plus(arrayIndex?.let { i -> "$name[$i]" } ?: name)
-//        val parentNewStr = { parentNew.joinToString("/") }
 
         return when {
             isLast && arrayIndex == null && jsonElement is JsonObject -> {
@@ -126,6 +124,8 @@ sealed interface IMutation {
         }
     }
 
+    private fun parentNewStr (parentNew:  List<String>) : String= parentNew.joinToString("/")
+
     fun nodeProperty(path: List<String>) = if (path.isNotEmpty() && path.first().contains("[")) {
         val node = path.first()
         val indexOfBegin = node.indexOf("[")
@@ -178,8 +178,4 @@ data class Add(
     override val jsonPath: JsonPath,
     override val value: JsonElement,
 ) : IMutation
-//    override fun mutate(mutatedJson: JsonElement): JsonElement {
-//        TODO("Not yet implemented")
-//    }
-//}
 
