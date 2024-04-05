@@ -90,7 +90,7 @@ class TestAll : FunSpec({
                 val mutateJsonElement = delete.mutate(DeleteTest.parseToJsonElement)
                 val jsonStr = delete.mutate(DeleteTest.parseToJsonElement.toString())
                 mutateJsonElement shouldBe jsonStr
-                mutateJsonElement.toString() shouldBe  expected.expectedJson
+                mutateJsonElement.toString() shouldBe expected.expectedJson
             }
             is Err -> {
                 val textError = expected.expectedTextError
