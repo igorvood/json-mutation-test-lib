@@ -136,19 +136,19 @@ sealed interface IMutation {
     companion object {
         fun delete(f: () -> String) = Delete(JsonPath(f()))
 
-        infix fun String.mutateTo(jsonValue: Boolean?): Mutate = Mutate(JsonPath(this), JsonPrimitive(jsonValue))
+        infix fun String.mutateTo(jsonValue: Boolean): Mutate = Mutate(JsonPath(this), JsonPrimitive(jsonValue))
 
-        infix fun String.mutateTo(jsonValue: Number?): Mutate = Mutate(JsonPath(this), JsonPrimitive(jsonValue))
+        infix fun String.mutateTo(jsonValue: Number): Mutate = Mutate(JsonPath(this), JsonPrimitive(jsonValue))
 
-        infix fun String.mutateTo(jsonValue: String?): Mutate = Mutate(JsonPath(this), JsonPrimitive(jsonValue))
+        infix fun String.mutateTo(jsonValue: String): Mutate = Mutate(JsonPath(this), JsonPrimitive(jsonValue))
 
         infix fun String.mutateTo(jsonValue: JsonElement): Mutate = Mutate(JsonPath(this), jsonValue)
 
-        infix fun String.add(jsonValue: Boolean?): Add = Add(JsonPath(this), JsonPrimitive(jsonValue))
+        infix fun String.add(jsonValue: Boolean): Add = Add(JsonPath(this), JsonPrimitive(jsonValue))
 
-        infix fun String.add(jsonValue: Number?): Add = Add(JsonPath(this), JsonPrimitive(jsonValue))
+        infix fun String.add(jsonValue: Number): Add = Add(JsonPath(this), JsonPrimitive(jsonValue))
 
-        infix fun String.add(jsonValue: String?): Add = Add(JsonPath(this), JsonPrimitive(jsonValue))
+        infix fun String.add(jsonValue: String): Add = Add(JsonPath(this), JsonPrimitive(jsonValue))
 
         infix fun String.add(jsonValue: JsonElement): Add = Add(JsonPath(this), jsonValue)
 
