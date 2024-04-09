@@ -9,7 +9,7 @@ class ExampleDsl : ShouldSpec({
 
     should("Example Dsl for json in string and custom parser") {
         val jsonElement =
-            JsonStr("{}") withParser json withRule listOf(
+            JsonStr("{}") withParser json withRules listOf(
                 "a1" add 1,
                 "a2" add "asdas",
             )
@@ -19,7 +19,7 @@ class ExampleDsl : ShouldSpec({
 
     should("Example Dsl for json in JsonObject") {
         val jsonElement =
-            JsonObject(mapOf()) withRule listOf(
+            JsonObject(mapOf()) withRules listOf(
                 "a1" add 1,
                 "a2" add "asdas",
             )

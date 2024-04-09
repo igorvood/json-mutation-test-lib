@@ -40,14 +40,14 @@ class CompositeTest : FunSpec({
 
         when (expected) {
             is Ok -> {
-                val mutate1 = JsonStr(DeleteTest.parseToJsonElement.toString()) withRule mutationList
+                val mutate1 = JsonStr(DeleteTest.parseToJsonElement.toString()) withRules mutationList
                 Assertions.assertEquals(expected.expectedJson, mutate1.toString())
             }
 
             is Err -> {
                 val textError = expected.expectedTextError
                 kotlin.runCatching {
-                    JsonStr(DeleteTest.parseToJsonElement.toString()) withRule mutationList
+                    JsonStr(DeleteTest.parseToJsonElement.toString()) withRules mutationList
                 }
                     .map { error("must be exception") }
                     .getOrElse {
