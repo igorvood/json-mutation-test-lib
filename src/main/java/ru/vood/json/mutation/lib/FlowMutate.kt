@@ -3,9 +3,6 @@ package ru.vood.json.mutation.lib
 import kotlinx.serialization.json.JsonElement
 import ru.vood.json.mutation.lib.Js.json
 
-infix fun JsonStr.withRule(mutationRules: IMutation): JsonElement =
-    json.parseToJsonElement(this.value) withRules listOf(mutationRules)
-
 infix fun JsonStr.withRules(mutationRules: List<IMutation>): JsonElement =
     json.parseToJsonElement(this.value) withRules mutationRules
 
