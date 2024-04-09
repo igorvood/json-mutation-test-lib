@@ -19,7 +19,7 @@ sealed interface IMutation {
     fun mutate(mutatedJson: JsonElement): JsonElement =
         mutateRecursive(mutatedJson, jsonPath.value.split("/"), emptyList())
 
-    fun mutateRecursive(jsonElement: JsonElement, path: List<String>, parent: List<String>): JsonElement {
+    private fun mutateRecursive(jsonElement: JsonElement, path: List<String>, parent: List<String>): JsonElement {
         val (name, arrayIndex, isLast) = nodeProperty(path)
         val parentNew = parent.plus(arrayIndex?.let { i -> "$name[$i]" } ?: name)
 
