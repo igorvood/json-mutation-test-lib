@@ -13,8 +13,8 @@ sealed interface IMutation {
     fun <T> mutate(mutatedDto: T, serializer: KSerializer<T>, json: Json = Js.json): JsonElement =
         mutateRecursive(json.encodeToJsonElement(serializer, mutatedDto), jsonPath.value.split("/"), emptyList())
 
-    fun mutate(mutatedJson: String, json: Json = Js.json): JsonElement =
-        mutateRecursive(json.parseToJsonElement(mutatedJson), jsonPath.value.split("/"), emptyList())
+    fun mutate(mutatedJson: JsonStr, json: Json = Js.json): JsonElement =
+        mutateRecursive(json.parseToJsonElement(mutatedJson.value), jsonPath.value.split("/"), emptyList())
 
     fun mutate(mutatedJson: JsonElement): JsonElement =
         mutateRecursive(mutatedJson, jsonPath.value.split("/"), emptyList())
