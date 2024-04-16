@@ -33,11 +33,11 @@ sealed interface IMutation {
         jsonElement: JsonElement?,
         path: List<String>,
         parent: List<String>,
-    ): JsonElement{
+    ): JsonElement {
         val (name, arrayIndex, isLast) = nodeProperty(path)
         val parentNew = parent.plus(arrayIndex?.let { i -> "$name[$i]" } ?: name)
 
-        if (jsonElement == null){
+        if (jsonElement == null) {
             return@findNearestPathAndMutate mutateWithType(name, arrayIndex, isLast, parent, path, null)
         }
 
@@ -55,6 +55,7 @@ sealed interface IMutation {
                 )
                 JsonObject(content)
             }
+
             isLast && arrayIndex != null && jsonElement is JsonObject -> {
                 val content = jsonElement.plus(
                     name to mutateWithType(
@@ -68,6 +69,7 @@ sealed interface IMutation {
                 )
                 JsonObject(content)
             }
+
             !isLast && arrayIndex == null && jsonElement is JsonObject -> {
                 val content = jsonElement.plus(
                     name to findNearestPathAndMutate(
@@ -78,6 +80,7 @@ sealed interface IMutation {
                 )
                 JsonObject(content)
             }
+
             !isLast && arrayIndex != null && jsonElement is JsonObject -> {
                 val jsonElement1 = when (val arr = jsonElement[name]) {
                     is JsonArray -> {
@@ -91,6 +94,7 @@ sealed interface IMutation {
                             arr.mapIndexed { index, elem -> if (index != arrayIndex) elem else findNearestPathAndMutate }
                         JsonArray(mapIndexed)
                     }
+
                     null -> TODO("как то надо нул обрабобтать")
 
                     else -> error("Json element ${parentNewStr(parentNew)} not JsonArray, it has type ${arr::class.simpleName}")
@@ -99,11 +103,13 @@ sealed interface IMutation {
 
 
             }
+
             else -> error("asd")
         }
 
         return jsonObject
     }
+
     private fun mutateRecursive(jsonElement: JsonElement, path: List<String>, parent: List<String>): JsonElement {
         val (name, arrayIndex, isLast) = nodeProperty(path)
         val parentNew = parent.plus(arrayIndex?.let { i -> "$name[$i]" } ?: name)
@@ -135,7 +141,7 @@ sealed interface IMutation {
                 val addElement = when (this) {
                     is Delete -> {
                         val childrenJsonElement = (jsonElement[name]
-                            ?:error("In JsonObject not found field '${parentNewStr(parentNew)}' for $this"))
+                            ?: error("In JsonObject not found field '${parentNewStr(parentNew)}' for $this"))
                         val mutateRecurcive = mutateRecursive(childrenJsonElement, path.drop(1), parentNew)
                         JsonObject(jsonElement.plus(name to mutateRecurcive))
                     }
@@ -225,7 +231,7 @@ sealed interface IMutation {
                 when (childrenJsonElement) {
                     is JsonArray -> {
                         require(arrayIndex >= 0 && arrayIndex < childrenJsonElement.size) { "json element $name not contains index $arrayIndex" }
-                        val filterIndexed = childrenJsonElement.mapIndexed() { q, e ->
+                        val filterIndexed = childrenJsonElement.mapIndexed { q, e ->
                             if (q == arrayIndex) {
                                 mutateRecursive(e, path.drop(1), parentNew)
                             } else e
@@ -250,7 +256,6 @@ sealed interface IMutation {
 
         }
     }
-
 
 
     fun nodeProperty(path: List<String>) = if (path.isNotEmpty() && path.first().contains("[")) {
@@ -305,11 +310,11 @@ data class Delete(
         path: List<String>,
         lastElement: JsonElement?
     ): JsonElement {
-        return when{
-            isLast && arrayIndex == null && lastElement !=null -> value
-            isLast && arrayIndex != null && lastElement !=null && lastElement is JsonArray -> {
+        return when {
+            isLast && arrayIndex == null && lastElement != null -> value
+            isLast && arrayIndex != null && lastElement != null && lastElement is JsonArray -> {
                 val elementAt = lastElement.elementAtOrNull(arrayIndex)
-                if(elementAt==null){
+                if (elementAt == null) {
                     error("""Allowed range [0, ${lastElement.size - 1}] for JsonArray ${parentNewStr(parentNew)} but it not contains index $arrayIndex for $this""")
                 } else {
                     JsonArray(lastElement
