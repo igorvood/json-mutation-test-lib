@@ -79,14 +79,19 @@ sealed interface IMutation {
                 JsonObject(content)
             }
             !isLast && arrayIndex != null && jsonElement is JsonObject -> {
-                val content = jsonElement.plus(
-                    name to findNearestPathAndMutate(
-                        jsonElement[name],
+                val jsonElement1 = when (val arr = jsonElement[name]) {
+                    is JsonArray -> findNearestPathAndMutate(
+                        arr.filterIndexed { index, jsonElement -> index == arrayIndex }
+                            .firstOrNull(),
                         path.drop(1),
                         parentNew
                     )
-                )
-                JsonObject(content)
+
+                    else -> TODO()
+                }
+                JsonObject(jsonElement.plus(name to jsonElement1))
+
+
             }
             else -> error("asd")
         }
