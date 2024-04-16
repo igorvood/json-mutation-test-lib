@@ -3,6 +3,7 @@ package ru.vood.json.mutation.lib
 import arrow.core.plus
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.*
+import ru.vood.json.mutation.lib.Js.json
 
 sealed interface IMutation {
 
@@ -19,6 +20,79 @@ sealed interface IMutation {
     fun mutate(mutatedJson: JsonElement): JsonElement =
         mutateRecursive(mutatedJson, jsonPath.value.split("/"), emptyList())
 
+    fun mutateWithType(
+        name: String,
+        arrayIndex: Int?,
+        isLast: Boolean,
+        parentNew: List<String>,
+        path: List<String>,
+        lastElement: JsonElement?
+    ): JsonElement
+
+    fun findNearestPathAndMutate(
+        jsonElement: JsonElement?,
+        path: List<String>,
+        parent: List<String>,
+    ): JsonElement{
+        val (name, arrayIndex, isLast) = nodeProperty(path)
+        val parentNew = parent.plus(arrayIndex?.let { i -> "$name[$i]" } ?: name)
+
+        if (jsonElement == null){
+            return@findNearestPathAndMutate mutateWithType(name, arrayIndex, isLast, parentNew, path, null)
+        }
+
+        val jsonObject = when {
+            isLast && arrayIndex == null && jsonElement is JsonObject -> {
+                val content = jsonElement.plus(
+                    name to mutateWithType(
+                        name,
+                        arrayIndex,
+                        isLast,
+                        parentNew,
+                        path,
+                        jsonElement[name]
+                    )
+                )
+                JsonObject(content)
+            }
+            isLast && arrayIndex != null && jsonElement is JsonObject -> {
+                val content = jsonElement.plus(
+                    name to mutateWithType(
+                        name,
+                        arrayIndex,
+                        isLast,
+                        parentNew,
+                        path,
+                        jsonElement[name]
+                    )
+                )
+                JsonObject(content)
+            }
+            !isLast && arrayIndex == null && jsonElement is JsonObject -> {
+                val content = jsonElement.plus(
+                    name to findNearestPathAndMutate(
+                        jsonElement[name],
+                        path.drop(1),
+                        parentNew
+                    )
+                )
+                JsonObject(content)
+            }
+            !isLast && arrayIndex != null && jsonElement is JsonObject -> {
+                val content = jsonElement.plus(
+                    name to findNearestPathAndMutate(
+                        jsonElement[name],
+                        path.drop(1),
+                        parentNew
+                    )
+                )
+                JsonObject(content)
+            }
+            else -> error("asd")
+        }
+
+        return jsonObject
+    }
     private fun mutateRecursive(jsonElement: JsonElement, path: List<String>, parent: List<String>): JsonElement {
         val (name, arrayIndex, isLast) = nodeProperty(path)
         val parentNew = parent.plus(arrayIndex?.let { i -> "$name[$i]" } ?: name)
@@ -31,6 +105,7 @@ sealed interface IMutation {
                             ?: error("In JsonObject not found field '${parentNewStr(parentNew)}' for $this")
                         emptyMap()
                     }
+
                     is Add -> {
                         require(jsonElement[name] == null) { "In JsonObject found field '${parentNewStr(parentNew)}' for $this" }
                         mapOf(name to value)
@@ -44,6 +119,7 @@ sealed interface IMutation {
                 }.toMap().plus(addElement)
                 JsonObject(map)
             }
+
             !isLast && arrayIndex == null && jsonElement is JsonObject -> {
                 val addElement = when (this) {
                     is Delete -> {
@@ -52,6 +128,7 @@ sealed interface IMutation {
                         val mutateRecurcive = mutateRecursive(childrenJsonElement, path.drop(1), parentNew)
                         JsonObject(jsonElement.plus(name to mutateRecurcive))
                     }
+
                     is Mutate -> {
                         val childrenJsonElement =
                             jsonElement[name]
@@ -59,6 +136,7 @@ sealed interface IMutation {
                         val mutateRecurcive = mutateRecursive(childrenJsonElement, path.drop(1), parentNew)
                         JsonObject(jsonElement.plus(name to mutateRecurcive))
                     }
+
                     is Add -> {
                         val childrenJsonElement = jsonElement[name] ?: JsonObject(mapOf())
                         val mutateRecurcive = mutateRecursive(childrenJsonElement, path.drop(1), parentNew)
@@ -67,9 +145,10 @@ sealed interface IMutation {
                 }
                 addElement
             }
+
             isLast && arrayIndex != null && jsonElement is JsonObject -> {
                 val childrenJsonElement =
-                    jsonElement[name] ?: error("json element ${parentNewStr(parentNew)} not found for delete 1")
+                    jsonElement[name]
                 when (childrenJsonElement) {
                     is JsonArray -> {
                         val content = when (this) {
@@ -85,6 +164,7 @@ sealed interface IMutation {
                                 val map = listOf(name to JsonArray(filterIndexed))
                                 jsonElement.plus(map)
                             }
+
                             is Mutate -> {
                                 require(arrayIndex >= 0 && arrayIndex < childrenJsonElement.size) {
                                     "Allowed range [0, ${childrenJsonElement.size - 1}] for JsonArray ${
@@ -97,6 +177,7 @@ sealed interface IMutation {
                                 val map = listOf(name to JsonArray(filterIndexed.plus(this.value)))
                                 jsonElement.plus(map)
                             }
+
                             is Add -> {
                                 require(arrayIndex >= 0 && arrayIndex == childrenJsonElement.size) {
                                     "Allowed number [${childrenJsonElement.size}] for JsonArray ${
@@ -111,9 +192,21 @@ sealed interface IMutation {
                         }
                         JsonObject(content)
                     }
+
+                    null -> {
+                        when (this) {
+                            is Add -> {
+                                JsonObject(jsonElement.plus(mapOf(name to JsonArray(listOf(this.value)))))
+                            }
+
+                            is Mutate, is Delete -> error("For JsonArray ${parentNewStr(parentNew)} not allowed mutation $this")
+                        }
+                    }
+
                     else -> error("Json element ${parentNewStr(parentNew)} not JsonArray, it has type ${childrenJsonElement::class.simpleName}")
                 }
             }
+
             !isLast && arrayIndex != null && jsonElement is JsonObject -> {
                 val jsonElement1: JsonObject = jsonElement
                 val childrenJsonElement =
@@ -130,10 +223,12 @@ sealed interface IMutation {
                         val content: Map<String, JsonElement> = jsonElement1.plus(map)
                         JsonObject(content)
                     }
+
                     else -> error("Json element ${parentNewStr(parentNew)} not JsonArray, it has type ${childrenJsonElement::class.simpleName}")
                 }
 
             }
+
             !isLast && jsonElement is JsonPrimitive -> {
                 when (this) {
                     is Add, is Delete, is Mutate -> error("$this not compatible for JsonPrimitive with value $jsonElement")
@@ -168,6 +263,9 @@ sealed interface IMutation {
 
         infix fun String.mutateTo(jsonValue: JsonElement): Mutate = Mutate(JsonPath(this), jsonValue)
 
+        infix fun String.mutateTo(jsonValue: JsonStr): Mutate =
+            Mutate(JsonPath(this), json.parseToJsonElement(jsonValue.value))
+
         infix fun String.add(jsonValue: Boolean): Add = Add(JsonPath(this), JsonPrimitive(jsonValue))
 
         infix fun String.add(jsonValue: Number): Add = Add(JsonPath(this), JsonPrimitive(jsonValue))
@@ -175,6 +273,8 @@ sealed interface IMutation {
         infix fun String.add(jsonValue: String): Add = Add(JsonPath(this), JsonPrimitive(jsonValue))
 
         infix fun String.add(jsonValue: JsonElement): Add = Add(JsonPath(this), jsonValue)
+
+        infix fun String.add(jsonValue: JsonStr): Add = Add(JsonPath(this), json.parseToJsonElement(jsonValue.value))
 
 
     }
@@ -188,15 +288,54 @@ data class Delete(
     override val value: JsonElement
         get() = JsonNull
 
+    override fun mutateWithType(
+        name: String,
+        arrayIndex: Int?,
+        isLast: Boolean,
+        parentNew: List<String>,
+        path: List<String>,
+        lastElement: JsonElement?
+    ): JsonElement {
+        return when{
+            isLast && arrayIndex == null && lastElement !=null -> value
+            isLast && arrayIndex != null && lastElement !=null && lastElement is JsonArray -> JsonArray(lastElement
+                .filterIndexed{index, _ -> index !=arrayIndex}
+            )
+            else -> error("asdasdsad")
+        }
+
+    }
 }
 
 data class Mutate(
     override val jsonPath: JsonPath,
     override val value: JsonElement,
-) : IMutation
+) : IMutation {
+    override fun mutateWithType(
+        name: String,
+        arrayIndex: Int?,
+        isLast: Boolean,
+        parentNew: List<String>,
+        path: List<String>,
+        lastElement: JsonElement?
+    ): JsonElement {
+        TODO("Not yet implemented")
+    }
+}
 
 data class Add(
     override val jsonPath: JsonPath,
     override val value: JsonElement,
-) : IMutation
+) : IMutation {
+    override fun mutateWithType(
+        name: String,
+        arrayIndex: Int?,
+        isLast: Boolean,
+        parentNew: List<String>,
+        path: List<String>,
+        lastElement: JsonElement?
+    ): JsonElement {
+        TODO("Not yet implemented")
+    }
+}
 

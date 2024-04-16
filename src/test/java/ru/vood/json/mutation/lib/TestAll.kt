@@ -69,7 +69,22 @@ class TestAll : FunSpec({
                 expectedMutate = Err("""Json element a2[0] not JsonArray, it has type JsonObject"""),
                 expectedDelete = Err("""Json element a2[0] not JsonArray, it has type JsonObject"""),
             ),
-        ).flatMap { ta ->
+            TestCaseOnAll(
+                description = "значение нового элемента в массве, массив не существует",
+                jsonPath = JsonPath("""arr[0]"""),
+                expectedAdd = Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":"f11","f2":"f22"}]}},"z1":15,"list":["P","O"],"arr":[1.0]}"""),
+                expectedMutate = Err("""For JsonArray arr[0] not allowed mutation Mutate(jsonPath=JsonPath(value=arr[0]), value=1.0)"""),
+                expectedDelete = Err("""For JsonArray arr[0] not allowed mutation Delete(jsonPath=JsonPath(value=arr[0]))"""),
+            ),
+            TestCaseOnAll(
+                description = "значение нового элемента в массве, в объекте, массив не существует",
+                jsonPath = JsonPath("""q/arr[0]"""),
+                expectedAdd = Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":"f11","f2":"f22"}]}},"z1":15,"list":["P","O"],"q":{"arr":[1.0]}}"""),
+                expectedMutate = Err("""In JsonObject not found field 'q' for Mutate(jsonPath=JsonPath(value=q/arr[0]), value=1.0)"""),
+                expectedDelete = Err("""In JsonObject not found field 'q' for Delete"""),
+            ),
+
+            ).flatMap { ta ->
             listOf(
                 TestCase(
                     "${Delete::class.simpleName} ${ta.description}",

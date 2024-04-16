@@ -20,6 +20,11 @@ internal class DeleteTest {
         when (val exp = testCase.expected) {
             is Ok -> {
                 val mutate1 = testCase.mutation.mutate(parseToJsonElement)
+                val findNearestPathAndMutate = testCase.mutation.findNearestPathAndMutate(
+                    parseToJsonElement,
+                    testCase.mutation.jsonPath.value.split("/"), listOf()
+                )
+                assertEquals(mutate1, findNearestPathAndMutate)
                 assertEquals(exp.expectedJson, mutate1.toString())
             }
             is Err -> {
