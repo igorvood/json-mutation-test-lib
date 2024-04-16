@@ -115,28 +115,34 @@ class TestAll : FunSpec({
                 val jsonStr = mutation.mutate(JsonStr(DeleteTest.parseToJsonElement.toString()))
                 mutateJsonElement shouldBe jsonStr
                 mutateJsonElement.toString() shouldBe expected.expectedJson
-                when(mutation){
+                when (mutation) {
                     is Delete -> mutation.findNearestPathAndMutate(
                         DeleteTest.parseToJsonElement,
                         mutation.jsonPath.value.split("/"), listOf()
                     ) shouldBe mutateJsonElement
+
                     is Add, is Mutate -> {}
                 }
             }
+
             is Err -> {
                 val textError = expected.expectedTextError
 
-                when(mutation){
-                    is Delete -> kotlin.runCatching { mutation.findNearestPathAndMutate(
-                        DeleteTest.parseToJsonElement,
-                        mutation.jsonPath.value.split("/"), listOf()
-                    ) }
-                        .map { zx->
-                            error("must be exception but has json $zx") }
+                when (mutation) {
+                    is Delete -> kotlin.runCatching {
+                        mutation.findNearestPathAndMutate(
+                            DeleteTest.parseToJsonElement,
+                            mutation.jsonPath.value.split("/"), listOf()
+                        )
+                    }
+                        .map { zx ->
+                            error("must be exception but has json $zx")
+                        }
                         .getOrElse {
                             Assertions.assertEquals(textError, it.message)
                         }
-                    is Add, is Mutate ->     kotlin.runCatching { mutation.mutate(DeleteTest.parseToJsonElement) }
+
+                    is Add, is Mutate -> kotlin.runCatching { mutation.mutate(DeleteTest.parseToJsonElement) }
                         .map { error("must be exception") }
                         .getOrElse {
                             Assertions.assertEquals(textError, it.message)

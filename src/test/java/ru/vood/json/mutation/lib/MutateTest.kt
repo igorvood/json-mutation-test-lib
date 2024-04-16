@@ -88,6 +88,7 @@ class MutateTest : FunSpec({
                 val mutate1 = delete.mutate(parseToJsonElement)
                 mutate1.toString() shouldBe expected.expectedJson
             }
+
             is Err -> {
                 val textError = expected.expectedTextError
                 kotlin.runCatching { delete.mutate(parseToJsonElement) }

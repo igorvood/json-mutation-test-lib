@@ -1,7 +1,7 @@
 package ru.vood.json.mutation.lib
 
 import kotlinx.serialization.json.JsonElement
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -42,8 +42,9 @@ internal class DeleteTest {
                         testCase.mutation.jsonPath.value.split("/"), listOf()
                     )
                 }
-                    .map { zx->
-                        error("must be exception but has json $zx") }
+                    .map { zx ->
+                        error("must be exception but has json $zx")
+                    }
                     .getOrElse {
                         assertEquals(textError, it.message)
                     }
@@ -59,7 +60,7 @@ internal class DeleteTest {
         val parseToJsonElement: JsonElement = json.encodeToJsonElement(A1.serializer(), a1)
 
         private val testData = listOf(
-          TestCase(
+            TestCase(
                 "Удаление простого поля",
                 delete { "z1" },
                 Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":"f11","f2":"f22"}]}},"z1":null,"list":["P","O"]}""")

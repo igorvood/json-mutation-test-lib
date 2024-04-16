@@ -88,6 +88,7 @@ class AddTest : FunSpec({
                 val mutate1 = delete.mutate(parseToJsonElement)
                 Assertions.assertEquals(expected.expectedJson, mutate1.toString())
             }
+
             is Err -> {
                 val textError = expected.expectedTextError
                 kotlin.runCatching { delete.mutate(parseToJsonElement) }
