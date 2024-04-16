@@ -104,20 +104,27 @@ class TestAll : FunSpec({
 
                 )
         }
-    ) { (_, delete, expected) ->
+    ) { (_, mutation, expected) ->
         println("Etalon json")
         println(DeleteTest.parseToJsonElement.toString())
 
         when (expected) {
             is Ok -> {
-                val mutateJsonElement = delete.mutate(DeleteTest.parseToJsonElement)
-                val jsonStr = delete.mutate(JsonStr(DeleteTest.parseToJsonElement.toString()))
+                val mutateJsonElement = mutation.mutate(DeleteTest.parseToJsonElement)
+                val jsonStr = mutation.mutate(JsonStr(DeleteTest.parseToJsonElement.toString()))
                 mutateJsonElement shouldBe jsonStr
                 mutateJsonElement.toString() shouldBe expected.expectedJson
+                when(mutation){
+                    is Delete -> mutation.findNearestPathAndMutate(
+                        DeleteTest.parseToJsonElement,
+                        mutation.jsonPath.value.split("/"), listOf()
+                    ) shouldBe mutateJsonElement
+                    is Add, is Mutate -> {}
+                }
             }
             is Err -> {
                 val textError = expected.expectedTextError
-                kotlin.runCatching { delete.mutate(DeleteTest.parseToJsonElement) }
+                kotlin.runCatching { mutation.mutate(DeleteTest.parseToJsonElement) }
                     .map { error("must be exception") }
                     .getOrElse {
                         Assertions.assertEquals(textError, it.message)

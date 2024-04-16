@@ -80,12 +80,17 @@ sealed interface IMutation {
             }
             !isLast && arrayIndex != null && jsonElement is JsonObject -> {
                 val jsonElement1 = when (val arr = jsonElement[name]) {
-                    is JsonArray -> findNearestPathAndMutate(
-                        arr.filterIndexed { index, jsonElement -> index == arrayIndex }
-                            .firstOrNull(),
-                        path.drop(1),
-                        parentNew
-                    )
+                    is JsonArray -> {
+                        val findNearestPathAndMutate = findNearestPathAndMutate(
+                            arr.filterIndexed { index, jsonElement -> index == arrayIndex }
+                                .firstOrNull(),
+                            path.drop(1),
+                            parentNew
+                        )
+                        val mapIndexed =
+                            arr.mapIndexed { index, elem -> if (index != arrayIndex) elem else findNearestPathAndMutate }
+                        JsonArray(mapIndexed)
+                    }
 
                     else -> TODO()
                 }
