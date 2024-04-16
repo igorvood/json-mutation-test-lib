@@ -116,12 +116,14 @@ class TestAll : FunSpec({
                 mutateJsonElement shouldBe jsonStr
                 mutateJsonElement.toString() shouldBe expected.expectedJson
                 when (mutation) {
-                    is Delete -> mutation.findNearestPathAndMutate(
+                    is Add, is Delete -> mutation.findNearestPathAndMutate(
                         DeleteTest.parseToJsonElement,
                         mutation.jsonPath.value.split("/"), listOf()
                     ) shouldBe mutateJsonElement
 
-                    is Add, is Mutate -> {}
+                     is Mutate -> {
+
+                     }
                 }
             }
 

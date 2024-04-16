@@ -322,7 +322,7 @@ data class Delete(
                     )
                 }
             }
-//            !isLast ->
+
             else -> error("In JsonObject not found field '${parentNewStr(parentNew)}' for $this")
         }
 
@@ -357,7 +357,20 @@ data class Add(
         path: List<String>,
         lastElement: JsonElement?
     ): JsonElement {
-        TODO("Not yet implemented")
+        return when {
+            isLast && arrayIndex == null && lastElement == null -> value
+            isLast && arrayIndex != null && lastElement != null && lastElement is JsonArray -> {
+                val elementAt = lastElement.elementAtOrNull(arrayIndex)
+                if (elementAt == null) {
+                    JsonArray(lastElement.plus(value))
+                } else {
+                    error("""Allowed range [0, ${lastElement.size - 1}] for JsonArray ${parentNewStr(parentNew)} but it not contains index $arrayIndex for $this""")
+                }
+            }
+            isLast && arrayIndex==0 && lastElement ==null -> JsonArray(listOf( value))
+            lastElement != null -> error("adasdadsad")
+            else -> error("In JsonObject not found field '${parentNewStr(parentNew)}' for $this")
+        }
     }
 }
 
