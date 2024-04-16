@@ -38,7 +38,7 @@ sealed interface IMutation {
         val parentNew = parent.plus(arrayIndex?.let { i -> "$name[$i]" } ?: name)
 
         if (jsonElement == null){
-            return@findNearestPathAndMutate mutateWithType(name, arrayIndex, isLast, parentNew, path, null)
+            return@findNearestPathAndMutate mutateWithType(name, arrayIndex, isLast, parent, path, null)
         }
 
         val jsonObject = when {
@@ -91,8 +91,9 @@ sealed interface IMutation {
                             arr.mapIndexed { index, elem -> if (index != arrayIndex) elem else findNearestPathAndMutate }
                         JsonArray(mapIndexed)
                     }
+                    null -> TODO("как то надо нул обрабобтать")
 
-                    else -> TODO()
+                    else -> error("Json element ${parentNewStr(parentNew)} not JsonArray, it has type ${arr::class.simpleName}")
                 }
                 JsonObject(jsonElement.plus(name to jsonElement1))
 
@@ -134,7 +135,7 @@ sealed interface IMutation {
                 val addElement = when (this) {
                     is Delete -> {
                         val childrenJsonElement = (jsonElement[name]
-                            ?: error("In JsonObject not found field '${parentNewStr(parentNew)}' for ${Delete::class.simpleName}"))
+                            ?:error("In JsonObject not found field '${parentNewStr(parentNew)}' for $this"))
                         val mutateRecurcive = mutateRecursive(childrenJsonElement, path.drop(1), parentNew)
                         JsonObject(jsonElement.plus(name to mutateRecurcive))
                     }
@@ -250,7 +251,7 @@ sealed interface IMutation {
         }
     }
 
-    private fun parentNewStr(parentNew: List<String>): String = parentNew.joinToString("/")
+
 
     fun nodeProperty(path: List<String>) = if (path.isNotEmpty() && path.first().contains("[")) {
         val node = path.first()
@@ -285,8 +286,6 @@ sealed interface IMutation {
         infix fun String.add(jsonValue: JsonElement): Add = Add(JsonPath(this), jsonValue)
 
         infix fun String.add(jsonValue: JsonStr): Add = Add(JsonPath(this), json.parseToJsonElement(jsonValue.value))
-
-
     }
 
 }
@@ -308,10 +307,18 @@ data class Delete(
     ): JsonElement {
         return when{
             isLast && arrayIndex == null && lastElement !=null -> value
-            isLast && arrayIndex != null && lastElement !=null && lastElement is JsonArray -> JsonArray(lastElement
-                .filterIndexed{index, _ -> index !=arrayIndex}
-            )
-            else -> error("asdasdsad")
+            isLast && arrayIndex != null && lastElement !=null && lastElement is JsonArray -> {
+                val elementAt = lastElement.elementAtOrNull(arrayIndex)
+                if(elementAt==null){
+                    error("""Allowed range [0, ${lastElement.size - 1}] for JsonArray ${parentNewStr(parentNew)} but it not contains index $arrayIndex for $this""")
+                } else {
+                    JsonArray(lastElement
+                        .filterIndexed { index, _ -> index != arrayIndex }
+                    )
+                }
+            }
+//            !isLast ->
+            else -> error("In JsonObject not found field '${parentNewStr(parentNew)}' for $this")
         }
 
     }
@@ -349,3 +356,4 @@ data class Add(
     }
 }
 
+fun parentNewStr(parentNew: List<String>): String = parentNew.joinToString("/")

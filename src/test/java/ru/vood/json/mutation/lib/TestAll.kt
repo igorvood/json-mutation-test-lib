@@ -107,6 +107,7 @@ class TestAll : FunSpec({
     ) { (_, mutation, expected) ->
         println("Etalon json")
         println(DeleteTest.parseToJsonElement.toString())
+        println("Mutation rule ${mutation}")
 
         when (expected) {
             is Ok -> {
@@ -129,6 +130,19 @@ class TestAll : FunSpec({
                     .getOrElse {
                         Assertions.assertEquals(textError, it.message)
                     }
+                when(mutation){
+                    is Delete -> kotlin.runCatching { mutation.findNearestPathAndMutate(
+                        DeleteTest.parseToJsonElement,
+                        mutation.jsonPath.value.split("/"), listOf()
+                    ) }
+                        .map { zx->
+                            error("must be exception but has json $zx") }
+                        .getOrElse {
+                            Assertions.assertEquals(textError, it.message)
+                        }
+                    is Add, is Mutate -> {}
+                }
+
             }
         }
 

@@ -16,6 +16,7 @@ internal class DeleteTest {
     fun test(testCase: TestCase) {
         println("Etalon json")
         println(parseToJsonElement.toString())
+        println("Mutation rule ${testCase.mutation}")
 
         when (val exp = testCase.expected) {
             is Ok -> {
@@ -27,10 +28,22 @@ internal class DeleteTest {
                 assertEquals(mutate1, findNearestPathAndMutate)
                 assertEquals(exp.expectedJson, mutate1.toString())
             }
+
             is Err -> {
                 val textError = exp.expectedTextError
                 kotlin.runCatching { testCase.mutation.mutate(parseToJsonElement) }
                     .map { error("must be exception") }
+                    .getOrElse {
+                        assertEquals(textError, it.message)
+                    }
+                kotlin.runCatching {
+                    testCase.mutation.findNearestPathAndMutate(
+                        parseToJsonElement,
+                        testCase.mutation.jsonPath.value.split("/"), listOf()
+                    )
+                }
+                    .map { zx->
+                        error("must be exception but has json $zx") }
                     .getOrElse {
                         assertEquals(textError, it.message)
                     }
@@ -46,7 +59,7 @@ internal class DeleteTest {
         val parseToJsonElement: JsonElement = json.encodeToJsonElement(A1.serializer(), a1)
 
         private val testData = listOf(
-            TestCase(
+          TestCase(
                 "Удаление простого поля",
                 delete { "z1" },
                 Ok("""{"a2":{"a3":{"a4":[{"f1":"f1","f2":"f2"},{"f1":"f11","f2":"f22"}]}},"z1":null,"list":["P","O"]}""")
@@ -99,7 +112,7 @@ internal class DeleteTest {
             TestCase(
                 "Удаление не существующего поля",
                 delete { "a21/a3/a4[1]/f1" },
-                Err("""In JsonObject not found field 'a21' for Delete""")
+                Err("""In JsonObject not found field 'a21' for Delete(jsonPath=JsonPath(value=a21/a3/a4[1]/f1))""")
             ),
         )
 
